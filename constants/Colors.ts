@@ -5,6 +5,7 @@
 
 export const lightColors =   {
     "colors": {
+      "tint": "rgb(255, 178, 188)",
       "primary": "rgb(155, 64, 81)",
       "onPrimary": "rgb(255, 255, 255)",
       "primaryContainer": "rgb(255, 217, 221)",
@@ -50,6 +51,7 @@ export const lightColors =   {
 
 export const darkColors = {
     "colors": {
+      "tint": "rgb(255, 178, 188)",
       "primary": "rgb(255, 178, 188)",
       "onPrimary": "rgb(95, 17, 37)",
       "primaryContainer": "rgb(125, 41, 58)",
@@ -92,3 +94,8 @@ export const darkColors = {
       "backdrop": "rgba(58, 45, 46, 0.4)"
     }
 }
+
+export const Colors = {
+  light: lightColors,
+  dark: darkColors,
+};
