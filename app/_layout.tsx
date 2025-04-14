@@ -4,6 +4,7 @@ import { Slot, useNavigation } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import 'react-native-reanimated';
+import { ReaderProvider } from '@epubjs-react-native/core'; // epub阅读器
 
 import BookManagementScreen from './bookManagement/index';
 import SettingsScreen from './settings/index';
@@ -67,23 +68,24 @@ export default function RootLayout() {
 
   return (
     <PaperProvider theme={paperTheme}>
-      <Drawer.Navigator
-        initialRouteName="bookShelf" // 
-        drawerContent={(props) => <CustomDrawerContent {...props} />}
-        screenOptions={{
-          drawerStyle: {
-            width: 240,
-          },
-          header: () => <Header />,
-        }}
-      >
-        {/* 书架 */}
-        <Drawer.Screen
-          name="bookShelf" // 
-          options={{ title: '书架' }}
+      <ReaderProvider>
+        <Drawer.Navigator
+          initialRouteName="bookShelf"
+          drawerContent={(props) => <CustomDrawerContent {...props} />}
+          screenOptions={{
+            drawerStyle: {
+              width: 240, // 这里调侧栏的大小
+            },
+            header: () => <Header />,
+          }}
         >
-          {() => <Slot />}
-        </Drawer.Screen>
+          {/* 选项1：书架，对应 app/(tabs) 目录或文件 */}
+          <Drawer.Screen
+            name="bookShelf"
+            options={{ title: '书架' }}
+          >
+            {() => <Slot />}
+          </Drawer.Screen>
 
         {/* 书籍管理 */}
         <Drawer.Screen
@@ -99,6 +101,7 @@ export default function RootLayout() {
           component={SettingsScreen}
         />
       </Drawer.Navigator>
+      </ReaderProvider>
     </PaperProvider>
   );
 }
