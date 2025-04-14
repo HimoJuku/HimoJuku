@@ -4,6 +4,7 @@ import { Slot, useNavigation } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import 'react-native-reanimated';
+import { ReaderProvider } from '@epubjs-react-native/core'; // epub阅读器
 
 import BookManagementScreen from './bookManagement/index';
 
@@ -79,41 +80,43 @@ export default function RootLayout() {
 
   return (
     <PaperProvider theme={paperTheme}>
-      <Drawer.Navigator
-        initialRouteName="bookShlef"
-        drawerContent={(props) => <CustomDrawerContent {...props} />}
-        screenOptions={{
-          drawerStyle: {
-            width: 240, // 这里调侧栏的大小
-          },
-          header: () => <Header />,
-        }}
-      >
-        {/* 选项1：书架，对应 app/(tabs) 目录或文件 */}
-        <Drawer.Screen
-          name="bookShlef"
-          options={{ title: '书架' }}
+      <ReaderProvider>
+        <Drawer.Navigator
+          initialRouteName="bookShlef"
+          drawerContent={(props) => <CustomDrawerContent {...props} />}
+          screenOptions={{
+            drawerStyle: {
+              width: 240, // 这里调侧栏的大小
+            },
+            header: () => <Header />,
+          }}
         >
-          {() => <Slot />}
-        </Drawer.Screen>
+          {/* 选项1：书架，对应 app/(tabs) 目录或文件 */}
+          <Drawer.Screen
+            name="bookShlef"
+            options={{ title: '书架' }}
+          >
+            {() => <Slot />}
+          </Drawer.Screen>
 
-        {/* 选项2：书籍管理，对应 app/bookManagement/index.tsx*/}
+          {/* 选项2：书籍管理，对应 app/bookManagement/index.tsx*/}
 
-        <Drawer.Screen
-          name="bookManagement"
-          options={{ title: '书籍管理' }}
-          component={BookManagementScreen}
-        />
+          <Drawer.Screen
+            name="bookManagement"
+            options={{ title: '书籍管理' }}
+            component={BookManagementScreen}
+          />
 
 
-        {/* 选项3：设置，还没写*/}
-        <Drawer.Screen
-          name="settings"
-          options={{ title: '设置' }}
-        >
-          {() => <Slot />}
-        </Drawer.Screen>
-      </Drawer.Navigator>
+          {/* 选项3：设置，还没写*/}
+          <Drawer.Screen
+            name="settings"
+            options={{ title: '设置' }}
+          >
+            {() => <Slot />}
+          </Drawer.Screen>
+        </Drawer.Navigator>
+      </ReaderProvider>
     </PaperProvider>
   );
 }
