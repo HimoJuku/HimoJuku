@@ -6,11 +6,7 @@ import { useFonts } from 'expo-font';
 import 'react-native-reanimated';
 
 import BookManagementScreen from './bookManagement/index';
-
-{/* 这仨暂时没用到，就注释掉了，stack导航换成用Drawer.Navigator的侧边栏导航和路由 */}
-// import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
-// import { Stack } from 'expo-router';
-// import { StatusBar } from 'expo-status-bar';
+import SettingsScreen from './settings/index';
 
 import {
   MD3DarkTheme,
@@ -19,35 +15,27 @@ import {
   Appbar,
 } from 'react-native-paper';
 
-// React Navigation - Drawer
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
-
-type DrawerParamList = {
-  "bookShlef": undefined;
-  bookManagement: undefined;
-  settings: undefined;
-  // ...etc
-};
-
 import { lightColors, darkColors } from '../constants/Colors';
+import { CustomDrawerContent } from '../components/CustomDrawerContent';
 
-import {CustomDrawerContent} from '../components/CustomDrawerContent';
 SplashScreen.preventAutoHideAsync();
 
-// 创建Drawer
-const Drawer = createDrawerNavigator<DrawerParamList>();
+type DrawerParamList = {
+  bookShelf: undefined; 
+  bookManagement: undefined;
+  settings: undefined;
+};
 
+const Drawer = createDrawerNavigator<DrawerParamList>();
 
 function Header() {
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
 
   return (
     <Appbar.Header>
-      <Appbar.Action
-       icon="menu"
-       onPress={() => navigation.openDrawer()} 
-       />
+      <Appbar.Action icon="menu" onPress={() => navigation.openDrawer()} />
       <Appbar.Content title="BookShelf" />
       <Appbar.Action icon="magnify" onPress={() => {}} />
       <Appbar.Action icon="dots-vertical" onPress={() => {}} />
@@ -80,39 +68,36 @@ export default function RootLayout() {
   return (
     <PaperProvider theme={paperTheme}>
       <Drawer.Navigator
-        initialRouteName="bookShlef"
+        initialRouteName="bookShelf" // 
         drawerContent={(props) => <CustomDrawerContent {...props} />}
         screenOptions={{
           drawerStyle: {
-            width: 240, // 这里调侧栏的大小
+            width: 240,
           },
           header: () => <Header />,
         }}
       >
-        {/* 选项1：书架，对应 app/(tabs) 目录或文件 */}
+        {/* 书架 */}
         <Drawer.Screen
-          name="bookShlef"
+          name="bookShelf" // 
           options={{ title: '书架' }}
         >
           {() => <Slot />}
         </Drawer.Screen>
 
-        {/* 选项2：书籍管理，对应 app/bookManagement/index.tsx*/}
-
+        {/* 书籍管理 */}
         <Drawer.Screen
           name="bookManagement"
           options={{ title: '书籍管理' }}
           component={BookManagementScreen}
         />
 
-
-        {/* 选项3：设置，还没写*/}
+        {/* 设置 */}
         <Drawer.Screen
           name="settings"
           options={{ title: '设置' }}
-        >
-          {() => <Slot />}
-        </Drawer.Screen>
+          component={SettingsScreen}
+        />
       </Drawer.Navigator>
     </PaperProvider>
   );
