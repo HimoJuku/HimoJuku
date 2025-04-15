@@ -34,6 +34,7 @@ type DrawerParamList = {
 import { lightColors, darkColors } from '../constants/Colors';
 
 import {CustomDrawerContent} from '../components/CustomDrawerContent';
+import ReaderPage from './(tabs)/reader';
 SplashScreen.preventAutoHideAsync();
 
 // 创建Drawer
