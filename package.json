@@ -15,6 +15,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
+    "@cd-z/react-native-epub-creator": "^3.0.0",
     "@epubjs-react-native/core": "^1.4.7",
     "@epubjs-react-native/expo-file-system": "^1.1.4",
     "@expo/vector-icons": "^14.0.2",
