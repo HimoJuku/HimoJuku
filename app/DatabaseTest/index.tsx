@@ -1,17 +1,15 @@
-// app/DatabaseTest/index.tsx
-
+//数据库测试文件，现在独立写成一个页面，用于测试数据库功能和存储是否正常。
 import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { database } from '../../db'; // 根据你的项目结构调整路径
-import Book from '../../db/Book';   // Book 模型
+import { database } from '../../db'; 
+import Book from '../../db/Book';  
 
 export default function DatabaseTest() {
   const [loading, setLoading] = useState(true);
   const [books, setBooks] = useState<Book[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // 每次页面进入时重新查询数据库
   const fetchBooks = async () => {
     try {
       setLoading(true);
