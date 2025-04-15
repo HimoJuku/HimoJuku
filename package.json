@@ -22,6 +22,7 @@
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/drawer": "^7.1.2",
     "@react-navigation/native": "^7.0.15",
+    "epubjs": "^0.3.93",
     "expo": "~52.0.35",
     "expo-blur": "~14.0.3",
     "expo-constants": "~17.0.6",
