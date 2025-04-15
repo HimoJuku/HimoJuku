@@ -17,6 +17,7 @@ export default function convertToEpub(txtBook: TxtBook)
                 title : bookTitle,
                 outputName : destName
             });
+            break;
         }
         case "cover":{
             const { srcFile, destFolder, bookTitle, destName, bookCover} = txtBook as TxtBookWithCover;
@@ -27,6 +28,7 @@ export default function convertToEpub(txtBook: TxtBook)
                 outputName : destName,
                 coverPath : bookCover
             });
+            break;
         }
         case "author":{
             const { srcFile, destFolder, bookTitle, destName, bookAuthor} = txtBook as TxtBookWithAuthor;
@@ -37,6 +39,7 @@ export default function convertToEpub(txtBook: TxtBook)
                 outputName : destName,
                 author : bookAuthor
             });
+            break;
         }
         case "full":{
             const { srcFile, destFolder, bookTitle, destName, bookCover, bookAuthor} = txtBook as TxtBookFull;
@@ -48,6 +51,7 @@ export default function convertToEpub(txtBook: TxtBook)
                 coverPath : bookCover,
                 author : bookAuthor
             });
+            break;
         }
     }
 }
