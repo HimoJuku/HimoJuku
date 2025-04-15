@@ -7,6 +7,8 @@ import 'react-native-reanimated';
 import { ReaderProvider } from '@epubjs-react-native/core'; // epub阅读器
 import { Colors } from '../constants/Colors';
 import BookManagementScreen from './bookManagement/index';
+import { database } from '../db';
+import DatabaseTest from './DatabaseTest';
 
 {/* 这仨暂时没用到，就注释掉了，stack导航换成用Drawer.Navigator的侧边栏导航和路由 */}
 // import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
@@ -30,6 +32,7 @@ type DrawerParamList = {
   bookManagement: undefined;
   settings: undefined;
   reader: { path: string };
+  databaseTest: undefined;
   // ...etc
 };
 
@@ -119,6 +122,13 @@ export default function RootLayout() {
               drawerItemStyle: { height: 0 }, // 高度为 0
             }}
           />
+
+          <Drawer.Screen
+            name="databaseTest"
+            options={{ title: '数据库测试' }}
+            component={DatabaseTest}
+          />
+
 
           {/* 选项3：设置，还没写*/}
           <Drawer.Screen

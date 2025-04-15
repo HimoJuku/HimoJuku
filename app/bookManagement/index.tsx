@@ -5,74 +5,28 @@ import * as FileSystem from 'expo-file-system';
 import { useTheme, Button as PaperButton } from 'react-native-paper';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
+
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Book } from '../book/type';
-import ePub from 'epubjs';
 
-async function parseEpubMeta(epubPath: string): Promise<{
-  title?: string;
-  author?: string;
-  coverUri?: string;
-}> {
-  try {
-    // 用 ePubjs 加载本地 epub
-    const book = ePub(epubPath);
 
-    // 打开 epub
-    await book.opened; 
-    // 获取 metadata: 包含 title, creator(作者) 等
-    const metadata = await book.loaded.metadata;
-    const { title, creator } = metadata;
+import { parseAndSaveEpub } from './epubParser'; 
 
-    // 获取封面 ID
-    const coverId = await book.loaded.cover;
-    let coverUri: string | undefined;
-
-    // 如果有封面 ID，就提取封面 Blob 并写入本地
-    if (coverId) {
-      const blob = await book.archive.getBlob(coverId);
-      // 转成 base64
-      const base64Data = await convertBlobToBase64(blob);
-      // 写到 app 专用目录
-      const coverPath = FileSystem.documentDirectory + `covers/${Date.now()}.jpg`;
-      // base64 写入文件
-      await FileSystem.writeAsStringAsync(coverPath, base64Data, { encoding: 'base64' });
-      coverUri = coverPath; // 赋给 coverUri
-    }
-
-    return {
-      title,
-      author: creator,
-      coverUri,
-    };
-  } catch (err) {
-    console.error('解析 epub 出错:', err);
-    return {};
-  }
-}
-
-// 2) 一个辅助把 Blob -> Base64
-function convertBlobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const dataUrl = reader.result as string;
-      // dataUrl 类似 "data:application/octet-stream;base64,AAAA..."
-      const base64 = dataUrl.split(',')[1];
-      resolve(base64);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
+/**
+ * BookManagementScreen
+ * --------------------------------------------------
+ * 用户点击“导入书籍” -> 复制到 "/books" 目录
+ * 然后调用 parseAndSaveEpub(localPath) 做深入解析 + 保存到DB
+ * UI 仍然保留之前的主题/颜色写法
+ */
 export default function BookManagementScreen() {
+  // 这里保留 state 只做演示; 若你打算完全用 DB, 可省略
   const [books, setBooks] = useState<{ name: string; uri: string }[]>([]);
-  // 获取主题对象
+
   const theme = useTheme();
   const colorScheme = useColorScheme(); 
-  const tint = Colors[colorScheme ?? 'light'].colors.tint; 
+  const tint = Colors[colorScheme ?? 'light'].colors.tint;
+
   type DrawerParamList = {
     bookShlef: undefined;
     bookManagement: undefined;
@@ -82,28 +36,47 @@ export default function BookManagementScreen() {
   
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
 
-  // ============ 原有的导入逻辑保留 ============
+  /**
+   * handleImportBook:
+   * 1) 弹出文件选择器 -> 获取 { name, uri }
+   * 2) 复制到 documentDirectory + 'books/'
+   * 3) 调用 parseAndSaveEpub(localPath) 做文件解析 + 数据库存储
+   * 4) 更新本地 state 以便在当前UI上列出
+   */
   const handleImportBook = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         copyToCacheDirectory: true,
         multiple: false,
       });
+
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const file = result.assets[0];
         const { name, uri } = file;
+
+        // step1: 准备 /books 目录
         const booksDir = FileSystem.documentDirectory + 'books/';
-        const localPath = booksDir + name;
-        // 确保目录存在
         const dirInfo = await FileSystem.getInfoAsync(booksDir);
         if (!dirInfo.exists) {
           await FileSystem.makeDirectoryAsync(booksDir, { intermediates: true });
         }
-        // 执行复制
+
+        // step2: 复制到本地
+        const localPath = booksDir + name;
         await FileSystem.copyAsync({ from: uri, to: localPath });
-        console.log('已复制:', localPath);
-        // 更新 state
+        console.log('已复制到本地:', localPath);
+
+        // step3: 调用 parseAndSaveEpub 做解析并存数据库
+        try {
+          const bookId = await parseAndSaveEpub(localPath);
+          console.log('🎉 成功解析并写入 DB, bookId:', bookId);
+        } catch (parseErr) {
+          console.error('解析 / 存储 epub 出错:', parseErr);
+        }
+
+        // step4: 更新本地 state (仅用于本页面显示)
         setBooks((prev) => [...prev, { name, uri: localPath }]);
+
       } else {
         console.log('未选择任何文件');
       }
@@ -112,17 +85,19 @@ export default function BookManagementScreen() {
     }
   };
 
+  /**
+   * handleOpenReader
+   * 让用户跳转到阅读器, 并传递 { path }
+   */
   const handleOpenReader = (path: string) => {
     navigation.navigate('reader', { path });
   };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.title, theme.fonts.titleLarge]}> 
-        书籍管理
-      </Text>
+      <Text style={[styles.title, theme.fonts.titleLarge]}>书籍管理</Text>
 
-      {/* 使用Paper Button +主色调 */}
+      {/* 导入按钮 (Paper Button + tint 颜色) */}
       <PaperButton
         mode="contained"
         onPress={handleImportBook}
@@ -134,7 +109,9 @@ export default function BookManagementScreen() {
 
       <View style={styles.bookList}>
         {books.length === 0 ? (
-          <Text style={{ color: theme.colors.onBackground }}>暂无书籍</Text>
+          <Text style={{ color: theme.colors.onBackground }}>
+            暂无书籍
+          </Text>
         ) : (
           books.map((book, index) => (
             <View key={index} style={styles.bookItem}>
@@ -143,7 +120,6 @@ export default function BookManagementScreen() {
               </Text>
               <Text style={{ color: theme.colors.onSurfaceVariant }}>{book.uri}</Text>
 
-              {/* 二次按钮：阅读此书 */}
               <PaperButton
                 mode="contained"
                 onPress={() => handleOpenReader(book.uri)}
