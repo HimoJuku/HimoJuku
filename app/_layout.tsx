@@ -5,7 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import 'react-native-reanimated';
 import { ReaderProvider } from '@epubjs-react-native/core'; // epub阅读器
-
+import { Colors } from '../constants/Colors';
 import BookManagementScreen from './bookManagement/index';
 
 {/* 这仨暂时没用到，就注释掉了，stack导航换成用Drawer.Navigator的侧边栏导航和路由 */}
@@ -18,6 +18,7 @@ import {
   MD3LightTheme,
   PaperProvider,
   Appbar,
+  ThemeProvider,
 } from 'react-native-paper';
 
 // React Navigation - Drawer
@@ -28,12 +29,15 @@ type DrawerParamList = {
   "bookShlef": undefined;
   bookManagement: undefined;
   settings: undefined;
+  reader: { path: string };
   // ...etc
 };
 
 import { lightColors, darkColors } from '../constants/Colors';
 
 import {CustomDrawerContent} from '../components/CustomDrawerContent';
+import ReaderPage from './(tabs)/reader';
+import BookShelfScreen from './bookShelf';
 SplashScreen.preventAutoHideAsync();
 
 // 创建Drawer
@@ -85,9 +89,8 @@ export default function RootLayout() {
           initialRouteName="bookShlef"
           drawerContent={(props) => <CustomDrawerContent {...props} />}
           screenOptions={{
-            drawerStyle: {
-              width: 240, // 这里调侧栏的大小
-            },
+            drawerActiveTintColor: Colors[colorScheme ?? 'light'].colors.tint,
+            drawerStyle: {width: 240 },
             header: () => <Header />,
           }}
         >
@@ -98,7 +101,7 @@ export default function RootLayout() {
           >
             {() => <Slot />}
           </Drawer.Screen>
-
+          
           {/* 选项2：书籍管理，对应 app/bookManagement/index.tsx*/}
 
           <Drawer.Screen
@@ -106,13 +109,23 @@ export default function RootLayout() {
             options={{ title: '书籍管理' }}
             component={BookManagementScreen}
           />
-
+          
+          <Drawer.Screen
+            name="reader"
+            component={ReaderPage}
+            options={{
+              drawerLabel: () => null,  // 不显示
+              title: '',
+              drawerItemStyle: { height: 0 }, // 高度为 0
+            }}
+          />
 
           {/* 选项3：设置，还没写*/}
           <Drawer.Screen
             name="settings"
             options={{ title: '设置' }}
           >
+          
             {() => <Slot />}
           </Drawer.Screen>
         </Drawer.Navigator>
