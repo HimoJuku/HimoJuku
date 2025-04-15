@@ -3,29 +3,27 @@
 import JSZip from 'jszip';
 import { XMLParser } from 'fast-xml-parser';
 import * as FileSystem from 'expo-file-system';
-import { database } from '../../db'; // db 文件夹与 app 平级
-import Book from '../../db/Book';    // WatermelonDB Book model
+import { database } from '../../db';
+import Book from '../../db/Book';
 
 /**
  * parseAndSaveEpub
  * ----------------
- * 1) 将传入的 epubPath 做进一步解析（假定已复制到 documentDirectory + 'books/'）
- * 2) 解析 metadata：title, author, coverHref
- * 3) 若有封面图片，写到 localCoversDir
- * 4) 将信息写入 WatermelonDB 并返回新建 Book id
- * 
- * @param epubPath e.g. "/data/user/0/host.exp.exponent/files/books/myBook.epub"
- * @returns newBookId (Book.id) 或抛错
+ * Reads a local EPUB file from the given path, parses its metadata (title, author, cover),
+ * saves the cover image (if available) in the "covers" directory, and writes the book information
+ * into WatermelonDB. Returns the new Book record ID.
+ *
+ * @param epubPath - The local file path of the EPUB (e.g. "/data/.../books/myBook.epub")
+ * @returns The ID of the newly created Book record.
  */
 export async function parseAndSaveEpub(epubPath: string): Promise<string> {
-  // 准备封面存放目录
   const localCoversDir = FileSystem.documentDirectory + 'covers/';
   const dirInfo = await FileSystem.getInfoAsync(localCoversDir);
   if (!dirInfo.exists) {
     await FileSystem.makeDirectoryAsync(localCoversDir, { intermediates: true });
   }
 
-  // 1) 读取 epub 文件 => base64 => Uint8Array
+  // Read and convert EPUB file to binary
   const base64Content = await FileSystem.readAsStringAsync(epubPath, {
     encoding: FileSystem.EncodingType.Base64,
   });
@@ -35,92 +33,55 @@ export async function parseAndSaveEpub(epubPath: string): Promise<string> {
     buf[i] = binary.charCodeAt(i);
   }
 
-  // 2) 用 JSZip 解压
   const zip = await JSZip.loadAsync(buf);
 
-  // 3) 读取 container.xml
+  // Parse META-INF/container.xml to obtain the OPF file path
   const containerFile = zip.file('META-INF/container.xml');
   if (!containerFile) {
     throw new Error('EPUB parse error: no META-INF/container.xml found');
   }
   const containerXmlText = await containerFile.async('text');
-
-  // 创建 parser，确保保留XML属性
-  const parser = new XMLParser({
-    ignoreAttributes: false,
-  });
+  const parser = new XMLParser({ ignoreAttributes: false });
   const containerObj = parser.parse(containerXmlText);
 
-  // 获取 rootfile path
   const container = containerObj.container;
-  if (!container) {
-    throw new Error('EPUB parse error: <container> node missing');
+  if (!container || !container.rootfiles) {
+    throw new Error('EPUB parse error: missing <container> or <rootfiles>');
   }
-  const rootfiles = container.rootfiles;
-  if (!rootfiles) {
-    throw new Error('EPUB parse error: <rootfiles> node missing');
-  }
-  let rootfile: any = rootfiles.rootfile;
+  let rootfile = container.rootfiles.rootfile;
   if (Array.isArray(rootfile)) {
     rootfile = rootfile[0];
   }
-  if (!rootfile) {
-    throw new Error('EPUB parse error: no <rootfile> found');
+  if (!rootfile || !rootfile['@_full-path']) {
+    throw new Error('EPUB parse error: no "@_full-path" found in rootfile');
   }
   const rootfilePath = rootfile['@_full-path'];
-  if (!rootfilePath) {
-    throw new Error('EPUB parse error: no "@_full-path" in rootfile');
-  }
-
-  // e.g. "OEBPS/content.opf"
   const rootDir = rootfilePath.substring(0, rootfilePath.lastIndexOf('/') + 1) || '';
 
-  // 4) 读取 .opf
+  // Read and parse the OPF file
   const opfFile = zip.file(rootfilePath);
   if (!opfFile) {
     throw new Error(`EPUB parse error: OPF file not found at ${rootfilePath}`);
   }
   const opfText = await opfFile.async('text');
-
-  // 用 fast-xml-parser 解析 opf
-  const opfParser = new XMLParser({
-    ignoreAttributes: false,
-  });
+  const opfParser = new XMLParser({ ignoreAttributes: false });
   const opfObj = opfParser.parse(opfText);
 
-  // 5) 提取 title, author, coverId
   const pack = opfObj.package;
-  if (!pack) {
-    throw new Error('EPUB parse error: no <package> node in opf');
+  if (!pack || !pack.metadata) {
+    throw new Error('EPUB parse error: missing <package> or <metadata> in opf');
   }
   const metadata = pack.metadata;
-  if (!metadata) {
-    throw new Error('EPUB parse error: no <metadata> node in opf');
-  }
 
-  // title
   const rawTitle = metadata['dc:title'];
-  let title = '';
-  if (Array.isArray(rawTitle)) {
-    title = rawTitle[0] || 'Untitled';
-  } else if (typeof rawTitle === 'string') {
-    title = rawTitle;
-  } else {
-    title = 'Untitled';
-  }
+  const title = Array.isArray(rawTitle) ? rawTitle[0] || 'Untitled'
+                : typeof rawTitle === 'string' ? rawTitle : 'Untitled';
 
-  // author
   const rawAuthor = metadata['dc:creator'];
-  let author = '';
-  if (Array.isArray(rawAuthor)) {
-    author = rawAuthor[0] || 'Unknown Author';
-  } else if (typeof rawAuthor === 'string') {
-    author = rawAuthor;
-  } else {
-    author = 'Unknown Author';
-  }
+  const author = Array.isArray(rawAuthor) ? rawAuthor[0] || 'Unknown Author'
+                 : typeof rawAuthor === 'string' ? rawAuthor : 'Unknown Author';
 
-  // cover ID
+  // Get cover ID from meta node
   let coverId = '';
   const metaNode = metadata.meta;
   if (metaNode) {
@@ -129,14 +90,12 @@ export async function parseAndSaveEpub(epubPath: string): Promise<string> {
       if (coverMeta) {
         coverId = coverMeta['@_content'];
       }
-    } else {
-      if (metaNode['@_name'] === 'cover') {
-        coverId = metaNode['@_content'];
-      }
+    } else if (metaNode['@_name'] === 'cover') {
+      coverId = metaNode['@_content'];
     }
   }
 
-  // 找 coverHref
+  // Retrieve cover href from manifest
   let coverHref = '';
   const manifest = pack.manifest;
   if (coverId && manifest && manifest.item) {
@@ -148,7 +107,7 @@ export async function parseAndSaveEpub(epubPath: string): Promise<string> {
     coverHref = coverItem ? coverItem['@_href'] : '';
   }
 
-  // 6) 提取封面文件
+  // Extract cover image and save locally (if available)
   let localCoverPath = '';
   if (coverHref) {
     const coverFileFullPath = rootDir + coverHref;
@@ -164,7 +123,7 @@ export async function parseAndSaveEpub(epubPath: string): Promise<string> {
     }
   }
 
-  // 7) 写入 WatermelonDB
+  // Write parsed data into WatermelonDB
   let newBookId = '';
   await database.write(async () => {
     const newBook = await database.collections.get<Book>('books').create((book: Book) => {
@@ -179,6 +138,6 @@ export async function parseAndSaveEpub(epubPath: string): Promise<string> {
     newBookId = newBook.id;
   });
 
-  console.log(` 成功解析并存储：${title} by ${author}`);
+  console.log(` Successfully parsed and stored: ${title} by ${author}`);
   return newBookId;
 }

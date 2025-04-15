@@ -40,7 +40,6 @@ import { lightColors, darkColors } from '../constants/Colors';
 
 import {CustomDrawerContent} from '../components/CustomDrawerContent';
 import ReaderPage from './(tabs)/reader';
-import BookShelfScreen from './bookShelf';
 SplashScreen.preventAutoHideAsync();
 
 // 创建Drawer

@@ -1,3 +1,5 @@
+// app/bookManagement/index.tsx
+
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
@@ -9,86 +11,62 @@ import { useNavigation } from '@react-navigation/native';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-
-import { parseAndSaveEpub } from './epubParser'; 
+import { parseAndSaveEpub } from './epubParser';
 
 /**
  * BookManagementScreen
- * --------------------------------------------------
- * 用户点击“导入书籍” -> 复制到 "/books" 目录
- * 然后调用 parseAndSaveEpub(localPath) 做深入解析 + 保存到DB
- * UI 仍然保留之前的主题/颜色写法
+ * ----------------------
+ * Allows users to import an EPUB file, copy it to the app's storage, and then
+ * parse the file to extract and save its metadata into the database.
  */
 export default function BookManagementScreen() {
-  // 这里保留 state 只做演示; 若你打算完全用 DB, 可省略
   const [books, setBooks] = useState<{ name: string; uri: string }[]>([]);
-
   const theme = useTheme();
   const colorScheme = useColorScheme(); 
   const tint = Colors[colorScheme ?? 'light'].colors.tint;
-
+  
   type DrawerParamList = {
     bookShlef: undefined;
     bookManagement: undefined;
     settings: undefined;
     reader: { path: string };
   };
-  
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
 
-  /**
-   * handleImportBook:
-   * 1) 弹出文件选择器 -> 获取 { name, uri }
-   * 2) 复制到 documentDirectory + 'books/'
-   * 3) 调用 parseAndSaveEpub(localPath) 做文件解析 + 数据库存储
-   * 4) 更新本地 state 以便在当前UI上列出
-   */
+  // Import file, copy it locally, parse metadata, store in DB, and update list.
   const handleImportBook = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         copyToCacheDirectory: true,
         multiple: false,
       });
-
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const file = result.assets[0];
         const { name, uri } = file;
-
-        // step1: 准备 /books 目录
         const booksDir = FileSystem.documentDirectory + 'books/';
         const dirInfo = await FileSystem.getInfoAsync(booksDir);
         if (!dirInfo.exists) {
           await FileSystem.makeDirectoryAsync(booksDir, { intermediates: true });
         }
-
-        // step2: 复制到本地
         const localPath = booksDir + name;
         await FileSystem.copyAsync({ from: uri, to: localPath });
-        console.log('已复制到本地:', localPath);
-
-        // step3: 调用 parseAndSaveEpub 做解析并存数据库
+        console.log('File copied locally:', localPath);
         try {
           const bookId = await parseAndSaveEpub(localPath);
-          console.log('🎉 成功解析并写入 DB, bookId:', bookId);
+          console.log('Successfully parsed and stored to DB, bookId:', bookId);
         } catch (parseErr) {
-          console.error('解析 / 存储 epub 出错:', parseErr);
+          console.error('Error parsing/storing EPUB:', parseErr);
         }
-
-        // step4: 更新本地 state (仅用于本页面显示)
-        setBooks((prev) => [...prev, { name, uri: localPath }]);
-
+        setBooks(prev => [...prev, { name, uri: localPath }]);
       } else {
-        console.log('未选择任何文件');
+        console.log('No file selected');
       }
     } catch (err) {
-      console.error('导入文件出错:', err);
+      console.error('Error importing file:', err);
     }
   };
 
-  /**
-   * handleOpenReader
-   * 让用户跳转到阅读器, 并传递 { path }
-   */
+  // Navigate to the reader page
   const handleOpenReader = (path: string) => {
     navigation.navigate('reader', { path });
   };
@@ -96,8 +74,6 @@ export default function BookManagementScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Text style={[styles.title, theme.fonts.titleLarge]}>书籍管理</Text>
-
-      {/* 导入按钮 (Paper Button + tint 颜色) */}
       <PaperButton
         mode="contained"
         onPress={handleImportBook}
@@ -106,12 +82,9 @@ export default function BookManagementScreen() {
       >
         导入书籍
       </PaperButton>
-
       <View style={styles.bookList}>
         {books.length === 0 ? (
-          <Text style={{ color: theme.colors.onBackground }}>
-            暂无书籍
-          </Text>
+          <Text style={{ color: theme.colors.onBackground }}>暂无书籍</Text>
         ) : (
           books.map((book, index) => (
             <View key={index} style={styles.bookItem}>
@@ -119,7 +92,6 @@ export default function BookManagementScreen() {
                 {book.name}
               </Text>
               <Text style={{ color: theme.colors.onSurfaceVariant }}>{book.uri}</Text>
-
               <PaperButton
                 mode="contained"
                 onPress={() => handleOpenReader(book.uri)}
