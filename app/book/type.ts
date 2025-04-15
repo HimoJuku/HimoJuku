@@ -1,13 +1,9 @@
 /**
- * Book interface
- * @param id unique identifier (e.g. UUID)
- * @param title book title
- * @param author author
- * @param format file format
- * @param filePath file path in local storage, e.g. "/books/xxxx.epub"
- * @param coverUri cover image path
- * @param importedAt import time, timestamp
- * @param lastReadPosition last read position
+ * Book interface for representing a book object.
+ * It includes properties such as id, title, author, format, filePath, coverUri, importedAt, and lastReadPosition.
+ * The format can be either 'epub' or 'txt'.
+ * The importedAt property is a timestamp representing when the book was imported.
+ * The lastReadPosition property is optional and represents the last read position in the book.
  */
 export interface Book {
     id: string;
