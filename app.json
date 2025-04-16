@@ -23,7 +23,10 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router"
+      ],
+
       [
         "expo-splash-screen",
         {
@@ -32,7 +35,17 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-font",
+        {          
+          "fonts": [
+            "assets/fonts/SpaceMono-Regular.ttf",
+            "assets/fonts/I.Ming-8.10.ttf"
+          ]
+        }
       ]
+
     ],
     "experiments": {
       "typedRoutes": true
