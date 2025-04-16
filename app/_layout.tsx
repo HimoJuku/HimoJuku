@@ -1,16 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useColorScheme } from 'react-native';
-import { Platform } from 'react-native';
 import { Dimensions } from 'react-native';
 
-import { Tabs, Slot, useNavigation } from 'expo-router';
+import { Slot, useNavigation } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen'; // Prevents the splash screen from auto-hiding
-import { useFonts } from 'expo-font'; // Load custom fonts
 import 'react-native-reanimated';
-
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
 
 import BookManagementScreen from './bookManagement/index';
 import SettingsScreen from './settings/index';
@@ -32,7 +26,7 @@ SplashScreen.preventAutoHideAsync(); // Prevents the splash screen from auto-hid
 
 type DrawerParamList = {
   picture: undefined; // Placeholder for the image background
-  bookShelf: undefined; 
+  bookShelf: undefined;
   bookManagement: undefined;
   settings: undefined;
 };
@@ -66,21 +60,6 @@ function TopBar() {
 }
 
 export default function RootLayout() {
-/*
-  const [fontsLoaded] = useFonts({
-    "I.Ming": require('@/assets/fonts/I.Ming-8.10.ttf'),
-  });
-
-  useEffect(() => {
-    if (fontsLoaded) {~ 
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
-
-  if (!fontsLoaded) {
-    return null;
-  }
-*/
   return (
     <PaperProvider theme={paperTheme}>
       <Drawer.Navigator
@@ -93,7 +72,8 @@ export default function RootLayout() {
           drawerActiveBackgroundColor: paperTheme.colors.primary,
           drawerInactiveTintColor: paperTheme.colors.onSurfaceVariant,
           drawerStyle: {
-            width: drawerWidth, // 这里调侧栏的大小
+            // Set the width of the drawer
+            width: drawerWidth,
             marginHorizontal: 0,
             left: 0,
             marginLeft: 0,
