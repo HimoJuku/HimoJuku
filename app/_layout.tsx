@@ -5,8 +5,10 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import 'react-native-reanimated';
 import { ReaderProvider } from '@epubjs-react-native/core'; // epub阅读器
-
+import { Colors } from '../constants/Colors';
 import BookManagementScreen from './bookManagement/index';
+import { database } from '../db';
+import DatabaseTest from './DatabaseTest';
 
 {/* 这仨暂时没用到，就注释掉了，stack导航换成用Drawer.Navigator的侧边栏导航和路由 */}
 // import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
@@ -18,6 +20,7 @@ import {
   MD3LightTheme,
   PaperProvider,
   Appbar,
+  ThemeProvider,
 } from 'react-native-paper';
 
 // React Navigation - Drawer
@@ -28,6 +31,8 @@ type DrawerParamList = {
   "bookShlef": undefined;
   bookManagement: undefined;
   settings: undefined;
+  reader: { path: string };
+  databaseTest: undefined;
   // ...etc
 };
 
@@ -86,9 +91,8 @@ export default function RootLayout() {
           initialRouteName="bookShlef"
           drawerContent={(props) => <CustomDrawerContent {...props} />}
           screenOptions={{
-            drawerStyle: {
-              width: 240, // 这里调侧栏的大小
-            },
+            drawerActiveTintColor: Colors[colorScheme ?? 'light'].colors.tint,
+            drawerStyle: {width: 240 },
             header: () => <Header />,
           }}
         >
@@ -99,13 +103,29 @@ export default function RootLayout() {
           >
             {() => <Slot />}
           </Drawer.Screen>
-
+          
           {/* 选项2：书籍管理，对应 app/bookManagement/index.tsx*/}
 
           <Drawer.Screen
             name="bookManagement"
             options={{ title: '书籍管理' }}
             component={BookManagementScreen}
+          />
+          
+          <Drawer.Screen
+            name="reader"
+            component={ReaderPage}
+            options={{
+              drawerLabel: () => null,  // 不显示
+              title: '',
+              drawerItemStyle: { height: 0 }, // 高度为 0
+            }}
+          />
+
+          <Drawer.Screen
+            name="databaseTest"
+            options={{ title: '数据库测试' }}
+            component={DatabaseTest}
           />
 
 
@@ -114,6 +134,7 @@ export default function RootLayout() {
             name="settings"
             options={{ title: '设置' }}
           >
+          
             {() => <Slot />}
           </Drawer.Screen>
         </Drawer.Navigator>

@@ -1,7 +1,7 @@
 // app/bookManagement/index.tsx
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import { useTheme, Button as PaperButton } from 'react-native-paper';
@@ -36,14 +36,9 @@ export default function BookManagementScreen() {
   // Import file, copy it locally, parse metadata, store in DB, and update list.
   const handleImportBook = async () => {
     try {
-      // 1. 调用系统文件选择器
-      //    返回 { canceled: boolean; assets?: Array<Asset> }
       const result = await DocumentPicker.getDocumentAsync({
         copyToCacheDirectory: true,
-        // 如果想一次选择多个文件，可以设置 multiple: true（需要判断是否支持）
         multiple: false,
-        // type: 'application/epub+zip', 
-        // 这个type是用来过滤文件类型的，比如只选epub啥的，这里暂时注释掉，因为还没实现格式解析
       });
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const file = result.assets[0];
@@ -117,29 +112,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     marginBottom: 12,
+    fontWeight: 'bold',
   },
   bookList: {
     marginTop: 12,
   },
-  emptyText: {
-    color: '#666',
-  },
   bookItem: {
-    marginBottom: 10,
+    marginBottom: 16,
+    paddingBottom: 10,
     borderBottomWidth: 1,
-    borderColor: '#ccc',
-    paddingBottom: 6,
+    borderColor: '#ddd',
   },
   bookName: {
     fontWeight: 'bold',
-  },
-  bookUri: {
-    fontSize: 12,
-    color: '#999',
+    fontSize: 16,
+    marginBottom: 4,
   },
 });
