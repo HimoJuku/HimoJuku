@@ -173,7 +173,7 @@ export default function RootLayout() {
 
           <Drawer.Screen
             name="databaseTest"
-            options={{ title: '数据库测试' }}
+            options={{ title: 'For Testing' }}
             component={DatabaseTest}
           />
 

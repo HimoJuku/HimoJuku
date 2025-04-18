@@ -23,7 +23,7 @@ export default function BookManagementScreen() {
   const [books, setBooks] = useState<{ name: string; uri: string }[]>([]);
   const theme = useTheme();
   const colorScheme = useColorScheme(); 
-  const tint = Colors[colorScheme ?? 'light'].colors.tint;
+  const tint = Colors[colorScheme ?? 'light'].colors.primary;
   
   type DrawerParamList = {
     bookShlef: undefined;
