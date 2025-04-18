@@ -8,7 +8,7 @@ export const lightColors =   {
       "tint": "rgb(255, 178, 188)",
       "primary": "rgb(155, 64, 81)",
       "onPrimary": "rgb(255, 255, 255)",
-      "primaryContainer": "rgb(255, 217, 221)",
+      "primaryContainer": "rgb(251,234,235)",
       "onPrimaryContainer": "rgb(64, 0, 18)",
       "secondary": "rgb(156, 65, 65)",
       "onSecondary": "rgb(255, 255, 255)",
