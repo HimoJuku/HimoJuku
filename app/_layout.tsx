@@ -10,11 +10,12 @@ import { Colors } from '../constants/Colors';
 import BookManagementScreen from './bookManagement/index';
 import { database } from '../db';
 import DatabaseTest from './DatabaseTest';
+import BookshelfScreen from './bookShelf';
 
-{/* 这仨暂时没用到，就注释掉了，stack导航换成用Drawer.Navigator的侧边栏导航和路由 */}
-// import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
-// import { Stack } from 'expo-router';
-// import { StatusBar } from 'expo-status-bar';
+/* 4.18:merge后解决了一些导致冲突的代码，部分导入没用到，但考虑到后面可能要补充相关功能，所以没删，*/
+
+
+
 import SettingsScreen from './settings/index';
 
 import {
@@ -140,9 +141,8 @@ export default function RootLayout() {
               />
             )
           }}
-        >
-          {() => <Slot />}
-        </Drawer.Screen>
+          component={BookshelfScreen}    
+        />
 
           {/* 选项2：书籍管理，对应 app/bookManagement/index.tsx*/}
 
@@ -171,15 +171,27 @@ export default function RootLayout() {
             }}
           />
 
+          
+          {/* 选项?：测试按钮，用于各种测试，目前是会显示成功录入数据的书籍基础信息，对应 app/DatabaseTest/index.tsx*/}
+          {/* 目前是会显示成功录入数据的书籍基础信息，对应 app/DatabaseTest/index.tming*/}
           <Drawer.Screen
             name="databaseTest"
-            options={{ title: 'For Testing' }}
+            options={{ 
+              title: 'For Testing',
+              drawerIcon: ({color, size}) => (
+                <MaterialIcons
+                   name= "bug-report"
+                   size={size}
+                   color={color}
+                />
+              )
+            }}
             component={DatabaseTest}
           />
 
         
 
-          {/* 选项3：设置，还没写*/}
+          {/* 选项3：设置，@ming已实现*/}
           <Drawer.Screen
           name="settings"
           options={{
