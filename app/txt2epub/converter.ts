@@ -134,8 +134,7 @@ function FormatChapterByRegex(content: string, chapterRegex?:RegExp): Chapter[] 
         if (match) {
             // If we have collected content for a previous chapter, save it
             if (currentChapter) {
-                currentChapter.content = '<p>' + currentContent + '</p>';
-                chapters.push(currentChapter);
+                currentChapter.content = '<p>' + currentContent.join('\n') + '</p>';
             }
 
             // Start a new chapter
