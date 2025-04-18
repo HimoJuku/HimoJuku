@@ -174,8 +174,10 @@ async function FormatChapterByAI(content: string, key: string): Promise<Chapter[
                 role: 'user',
                 content: prompt,
                 }]})});
-    console.log(response.text())
-    console.log(response.json())
+    const responseText = await response.text();
+    console.log(responseText);
+    const responseJson = await response.json();
+    console.log(responseJson);
     console.log(response.status)
     if (response.status === 200) {
         const data = await response.json();
