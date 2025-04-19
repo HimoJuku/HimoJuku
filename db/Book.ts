@@ -10,13 +10,13 @@ export default class Book extends Model {
   @field('author')
   author?: string;
 
-  @field('coverUrl')  
+  @field('coverUrl')
   coverUrl?: string;
 
   @field('description')
   description?: string;
 
-  @field('filePath')  
+  @field('filePath')
   filePath!: string;
 
   @field('importedAt')

@@ -6,17 +6,17 @@ import { Slot, useNavigation } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen'; // Prevents the splash screen from auto-hiding
 import 'react-native-reanimated';
 import { ReaderProvider } from '@epubjs-react-native/core'; // epub阅读器
-import { Colors } from '../constants/Colors';
-import BookManagementScreen from './bookManagement/index';
+import { Colors } from '../constants/colors';
+import BookManagementScreen from './bookManagement/Index';
 import { database } from '../db';
-import DatabaseTest from './DatabaseTest';
+import DatabaseTest from './DatabaseTest/Index';
 import BookshelfScreen from './bookShelf';
 
 /* 4.18:merge后解决了一些导致冲突的代码，部分导入没用到，但考虑到后面可能要补充相关功能，所以没删，*/
 
 
 
-import SettingsScreen from './settings/index';
+import SettingsScreen from './settings/Index';
 
 import {
   MD3DarkTheme,
@@ -42,7 +42,7 @@ type DrawerParamList = {
   // ...etc
 };
 
-import { lightColors, darkColors } from '../constants/Colors';
+import { lightColors, darkColors } from '../constants/colors';
 
 SplashScreen.preventAutoHideAsync();
 

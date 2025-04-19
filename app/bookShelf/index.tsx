@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 
 import { database } from '../../db';
-import Book from '../../db/Book';
+import Book from '../../db/book';
 
 type DrawerParamList = {
   bookShelf: undefined;
