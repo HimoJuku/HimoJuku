@@ -36,6 +36,7 @@
           "backgroundColor": "#ffffff"
         }
       ],
+      "expo-sqlite",
       [
         "expo-font",
         {          
