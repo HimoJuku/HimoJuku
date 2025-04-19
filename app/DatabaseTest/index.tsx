@@ -3,7 +3,7 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { database } from '../../db'; 
-import Book from '../../db/Book';  
+import Book from '../../db/book';  
 
 export default function DatabaseTest() {
   const [loading, setLoading] = useState(true);

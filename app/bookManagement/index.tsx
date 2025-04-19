@@ -8,10 +8,10 @@ import { useTheme, Button as PaperButton } from 'react-native-paper';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
 
-import { Colors } from '@/constants/Colors';
+import { Colors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-import { parseAndSaveEpub } from './epubParser';
+import { ParseAndSaveEpub } from './epubParser';
 
 /**
  * BookManagementScreen
@@ -22,11 +22,11 @@ import { parseAndSaveEpub } from './epubParser';
 export default function BookManagementScreen() {
   const [books, setBooks] = useState<{ name: string; uri: string }[]>([]);
   const theme = useTheme();
-  const colorScheme = useColorScheme(); 
+  const colorScheme = useColorScheme();
   const tint = Colors[colorScheme ?? 'light'].colors.primary;
   
   type DrawerParamList = {
-    bookShlef: undefined;
+    bookShelf: undefined;
     bookManagement: undefined;
     settings: undefined;
     reader: { path: string };
@@ -52,7 +52,7 @@ export default function BookManagementScreen() {
         await FileSystem.copyAsync({ from: uri, to: localPath });
         console.log('File copied locally:', localPath);
         try {
-          const bookId = await parseAndSaveEpub(localPath);
+          const bookId = await ParseAndSaveEpub(localPath);
           console.log('Successfully parsed and stored to DB, bookId:', bookId);
         } catch (parseErr) {
           console.error('Error parsing/storing EPUB:', parseErr);

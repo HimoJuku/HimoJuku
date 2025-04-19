@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.anonymous.HimoJuku"
     },
     "web": {
       "bundler": "metro",
@@ -26,7 +27,6 @@
       [
         "expo-router"
       ],
-
       [
         "expo-splash-screen",
         {
@@ -39,14 +39,13 @@
       "expo-sqlite",
       [
         "expo-font",
-        {          
+        {
           "fonts": [
             "assets/fonts/SpaceMono-Regular.ttf",
             "assets/fonts/I.Ming-8.10.ttf"
           ]
         }
       ]
-
     ],
     "experiments": {
       "typedRoutes": true
