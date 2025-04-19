@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import React, { useState, useContext} from 'react';
+import { View, StyleSheet} from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import { useTheme, Text, Button} from 'react-native-paper';
+import { useColorScheme } from 'react-native';
+import { ThemeContext, ThemePreference } from '../../context/ThemeContext';
 
 export default function BookManagementScreen() {
   const [books, setBooks] = useState<{ name: string; uri: string }[]>([]);
+  const colorScheme = useColorScheme();
+  const { themePreference, setThemePreference } = useContext(ThemeContext);
+  const { colors } = useTheme();
 
   const handleImportBook = async () => {
     try {
@@ -33,10 +39,12 @@ export default function BookManagementScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container,{backgroundColor:colors.background}]}>
       <Text style={styles.title}>书籍管理</Text>
 
-      <Button title="导入书籍" onPress={handleImportBook} />
+      <Button mode="contained" onPress={handleImportBook}>
+        导入书籍 
+      </Button>
 
       <View style={styles.bookList}>
         {books.length === 0 ? (
@@ -57,8 +65,7 @@ export default function BookManagementScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
+    padding: 16
   },
   title: {
     fontSize: 20,
@@ -68,12 +75,10 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   emptyText: {
-    color: '#666',
   },
   bookItem: {
     marginBottom: 10,
     borderBottomWidth: 1,
-    borderColor: '#ccc',
     paddingBottom: 6,
   },
   bookName: {
@@ -81,6 +86,5 @@ const styles = StyleSheet.create({
   },
   bookUri: {
     fontSize: 12,
-    color: '#999',
   },
 });

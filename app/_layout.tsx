@@ -20,6 +20,7 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { lightColors, darkColors } from '../constants/Colors';
 import { CustomDrawerContent } from '../components/CustomDrawerContent';
+import { ThemeContext, ThemePreference, ResolvedThemeType  } from '../context/ThemeContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -45,12 +46,17 @@ function Header() {
 }
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const systemColorScheme = useColorScheme();
+  const [themePreference, setThemePreference] = 
+    React.useState<ThemePreference>("system"); // 默认跟随系统
 
-  const paperTheme =
-    colorScheme === 'dark'
-      ? { ...MD3DarkTheme, colors: darkColors.colors }
-      : { ...MD3LightTheme, colors: lightColors.colors };
+  const safeSystemTheme = systemColorScheme || "light";
+  const resolvedTheme: ResolvedThemeType = 
+    themePreference === "system" ? safeSystemTheme : themePreference;
+
+    const paperTheme = resolvedTheme === "dark"
+    ? { ...MD3DarkTheme, colors: darkColors.colors }
+    : { ...MD3LightTheme, colors: lightColors.colors };
 
   const [fontsLoaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -67,6 +73,13 @@ export default function RootLayout() {
   }
 
   return (
+    <ThemeContext.Provider
+    value={{
+      themePreference,
+      resolvedTheme,
+      setThemePreference,
+    }}
+  >
     <PaperProvider theme={paperTheme}>
       <ReaderProvider>
         <Drawer.Navigator
@@ -103,5 +116,6 @@ export default function RootLayout() {
       </Drawer.Navigator>
       </ReaderProvider>
     </PaperProvider>
+    </ThemeContext.Provider>
   );
 }

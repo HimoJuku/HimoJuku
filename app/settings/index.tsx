@@ -1,175 +1,174 @@
-import * as React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Button, Menu, Divider, PaperProvider, Text } from 'react-native-paper';
-import Constants from 'expo-constants';
+import React, { useContext } from 'react';
+import { StyleSheet, ScrollView } from 'react-native';
+import { 
+  Button,
+  Menu,
+  Text,
+  useTheme,
+  Divider,
+  List,
+  Surface
+} from 'react-native-paper';
+import { ThemeContext, ThemePreference } from '../../context/ThemeContext';
 
 const SettingsScreen = () => {
+  const { themePreference, setThemePreference } = useContext(ThemeContext);
+  const { colors } = useTheme();
   const [themeMenuVisible, setThemeMenuVisible] = React.useState(false);
-  const [selectedTheme, setSelectedTheme] = React.useState('Light Mode');
   const [languageMenuVisible, setLanguageMenuVisible] = React.useState(false);
   const [selectedLanguage, setSelectedLanguage] = React.useState('中文');
 
-  // 主题选项
-  const themes = ['Light Mode', 'Dark Mode'];
-
-  // 语言选项
+  // 主题选项处理
+  const themes = ['Light Mode', 'Dark Mode', 'Follow System'];
   const languages = ['中文', 'English'];
-
-  // 打开主题菜单
-  const openThemeMenu = () => setThemeMenuVisible(true);
-  const closeThemeMenu = () => setThemeMenuVisible(false);
-
-  // 选择主题
-  const selectTheme = (theme: string) => {
-    setSelectedTheme(theme);
-    closeThemeMenu();
-    // TODO: 实际主题切换逻辑需要结合全局状态管理
+const THEME_OPTIONS = [
+  { label: 'Light Mode', value: 'light' },
+  { label: 'Dark Mode', value: 'dark' },
+  { label: 'Follow System', value: 'system' },
+] as const;
+  const getPreferenceValue = (label: string): ThemePreference => {
+    switch (label) {
+      case 'Light Mode': return 'light';
+      case 'Dark Mode': return 'dark';
+      case 'Follow System': return 'system';
+      default: return 'system';
+    }
   };
 
-  // 选择语言
+  const getCurrentThemeLabel = (): string => {
+    switch (themePreference) {
+      case 'light': return 'Light Mode';
+      case 'dark': return 'Dark Mode';
+      case 'system': return 'Follow System';
+      default: return 'Follow System';
+    }
+  };
+
+  const selectTheme = (themeLabel: string) => {
+    setThemePreference(getPreferenceValue(themeLabel));
+    setThemeMenuVisible(false);
+  };
+
   const selectLanguage = (language: string) => {
     setSelectedLanguage(language);
     setLanguageMenuVisible(false);
   };
 
+
+
   return (
-    <PaperProvider>
-      <ScrollView 
-        style={styles.container}
-        contentContainerStyle={styles.scrollContent} // 新增内容容器样式
-      >
-        <Text style={styles.title}>settings</Text>
+    <Surface style={[styles.container,{backgroundColor:colors.background}]}>
+      <ScrollView  contentContainerStyle={styles.scrollContent}>
+        {/* 标题 */}
+        <Text style={[styles.title, styles.header]} variant="headlineMedium">
+          Settings
+        </Text>
+
+        <Divider />
 
         {/* 主题设置 */}
-        <View style={styles.settingItem}>
-          <Text style={styles.settingText}>Dark mode setting</Text>
-          <Menu
-            visible={themeMenuVisible}
-            onDismiss={closeThemeMenu}
-            anchor={
-              <Button 
-                onPress={openThemeMenu} 
-                mode="outlined"
-                style={styles.squareButton} 
-                labelStyle={styles.buttonLabel}
-              >
-                {selectedTheme}
-              </Button>
-            }
-          >
-            {themes.map((theme, index) => (
-              <Menu.Item
-                key={`theme-${index}`}
-                onPress={() => selectTheme(theme)}
-                title={theme}
-              />
-            ))}
-          </Menu>
-        </View>
+        <List.Section style={styles.listSection}>
+          <List.Subheader>Appearance</List.Subheader>
+          <List.Item
+            title="Theme"
+            description="Select app theme"
+            right={({ color }) => (
+              <Menu
+                visible={themeMenuVisible}
+                onDismiss={() => setThemeMenuVisible(false)}
+                anchor={
+                  <Button
+                    mode="outlined"
+                    onPress={() => setThemeMenuVisible(true)}
+                    textColor={colors.primary}>
+                    {getCurrentThemeLabel()}
+                  </Button>
+                }>
+                {themes.map((theme) => (
+                  <Menu.Item
+                    key={theme}
+                    onPress={() => selectTheme(theme)}
+                    title={theme}
+                  />
+                ))}
+              </Menu>
+            )}
+          />
+        </List.Section>
+
+        <Divider />
 
         {/* 语言设置 */}
-        <View style={styles.settingItem}>
-          <Text style={styles.settingText}>System Language</Text>
-          <Menu
-            visible={languageMenuVisible}
-            onDismiss={() => setLanguageMenuVisible(false)}
-            anchor={
-              <Button 
-                onPress={() => setLanguageMenuVisible(true)} 
-                mode="outlined"
-                style={styles.squareButton}
-                labelStyle={styles.buttonLabel}
-              >
-                {selectedLanguage}
-              </Button>
-            }
-          >
-            {languages.map((language, index) => (
-              <Menu.Item
-                key={`lang-${index}`}
-                onPress={() => selectLanguage(language)}
-                title={language}
-              />
-            ))}
-          </Menu>
-        </View>
+        <List.Section style={styles.listSection}>
+          <List.Subheader>Language</List.Subheader>
+          <List.Item
+            title="App Language"
+            description="Select display language"
+            right={({ color }) => (
+              <Menu
+                visible={languageMenuVisible}
+                onDismiss={() => setLanguageMenuVisible(false)}
+                anchor={
+                  <Button
+                    mode="outlined"
+                    onPress={() => setLanguageMenuVisible(true)}
+                    textColor={colors.primary}>
+                    {selectedLanguage}
+                  </Button>
+                }>
+                {languages.map((language) => (
+                  <Menu.Item
+                    key={language}
+                    onPress={() => selectLanguage(language)}
+                    title={language}
+                  />
+                ))}
+              </Menu>
+            )}
+          />
+        </List.Section>
 
-        {/* 新增弹性占位空间 */}
-        <View style={styles.spacer} />
-
-        {/* 版本信息 - 移动到底部 */}
-        <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>About Himojuku</Text>
-          <Text style={styles.buildText}>Est. 2025</Text>
-        </View>
+        {/* 版本信息 */}
+        <List.Section style={styles.versionContainer}>
+          <Divider />
+          <Text style={styles.versionText} variant="bodySmall">
+            App Version: 1.0.0
+          </Text>
+          <Text style={styles.versionText} variant="bodySmall">
+            © 2025 Himojuku
+          </Text>
+        </List.Section>
       </ScrollView>
-    </PaperProvider>
+
+    </Surface>
   );
 };
-
 const styles = StyleSheet.create({
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 32
+  },
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#fff',
   },
-  scrollContent: {  //内容容器样式
-    flexGrow: 1,
+  header: {
     padding: 16,
+    paddingBottom: 8,
   },
   title: {
     fontSize: 24,
     fontWeight: '600',
-    marginBottom: 24,
-    color: '#333',
   },
-  settingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  settingText: {
-    fontSize: 16,
-    color: '#666',
-    flex: 1,
-    marginRight: 16,
-  },
-  //按钮样式
-  squareButton: {
-    borderRadius: 10,       
-    borderWidth: 1.5,
-    borderColor: '#666',
-    minWidth: 120,
-    justifyContent: 'center',
-  },
-  buttonLabel: {
-    color: '#333',
-    fontWeight: '500',
-    letterSpacing: 0.5,
-  },
-  spacer: {
-    flex: 1,
-    minHeight: 32,  //最小间距
+  listSection: {
+    marginVertical: 8,
   },
   versionContainer: {
-    marginTop: 'auto',
-    paddingTop: 24,
-    borderTopWidth: 1,   //分割线
-    borderTopColor: '#eee',
+    padding: 16,
     alignItems: 'center',
+    marginTop:'auto',
+    marginBottom: 18,
   },
-  
   versionText: {
-    fontSize: 14,
-    color: '#999',
-  },
-  buildText: {
-    fontSize: 12,
-    color: '#ccc',
-    marginTop: 4,
   },
 });
 
