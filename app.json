@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.anonymous.HimoJuku"
     },
     "web": {
       "bundler": "metro",
@@ -23,7 +24,9 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router"
+      ],
       [
         "expo-splash-screen",
         {
@@ -31,6 +34,16 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-sqlite",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "assets/fonts/SpaceMono-Regular.ttf",
+            "assets/fonts/I.Ming-8.10.ttf"
+          ]
         }
       ]
     ],
