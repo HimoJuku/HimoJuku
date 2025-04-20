@@ -2,19 +2,14 @@ import React, { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { Dimensions } from 'react-native';
 import { useFonts } from 'expo-font';
-import { Slot, useNavigation } from 'expo-router';
+import { useNavigation } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen'; // Prevents the splash screen from auto-hiding
 import 'react-native-reanimated';
 import { ReaderProvider } from '@epubjs-react-native/core'; // epub阅读器
 import { Colors } from '../constants/colors';
-import BookManagementScreen from './bookManagement/Index';
-import { database } from '../db';
-import DatabaseTest from './DatabaseTest/Index';
-import BookshelfScreen from './bookShelf';
-
-/* 4.18:merge后解决了一些导致冲突的代码，部分导入没用到，但考虑到后面可能要补充相关功能，所以没删，*/
-
-
+import BookManagementScreen from '@/app/bookManagement/Index';
+import DatabaseTest from '@/app/DatabaseTest/Index';
+import BookshelfScreen from '@/app/bookShelf/Index';
 
 import SettingsScreen from './settings/Index';
 
@@ -22,8 +17,7 @@ import {
   MD3DarkTheme,
   MD3LightTheme,
   PaperProvider,
-  Appbar,
-  ThemeProvider,
+  Appbar
 } from 'react-native-paper';
 
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -39,10 +33,7 @@ type DrawerParamList = {
   settings: undefined;
   reader: { path: string };
   databaseTest: undefined;
-  // ...etc
 };
-
-import { lightColors, darkColors } from '../constants/colors';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -94,7 +85,7 @@ export default function RootLayout() {
     return null;
   }
 
-  
+
   return (
     <PaperProvider theme={paperTheme}>
       <ReaderProvider>
@@ -134,14 +125,14 @@ export default function RootLayout() {
           options={{
             title: 'Book Shelf',
             drawerIcon: ({color, size}) => (
-              <MaterialIcons
-                 name= "book"
-                 size={size}
-                 color={color}
+            <MaterialIcons
+                name= "book"
+                size={size}
+                color={color}
               />
             )
           }}
-          component={BookshelfScreen}    
+          component={BookshelfScreen}
         />
 
           {/* 选项2：书籍管理，对应 app/bookManagement/index.tsx*/}
@@ -152,9 +143,9 @@ export default function RootLayout() {
             title: 'Book Management',
             drawerIcon: ({color, size}) => (
               <MaterialIcons
-                 name= "library-add"
-                 size={size}
-                 color={color}
+                name= "library-add"
+                size={size}
+                color={color}
               />
             )
           }}
@@ -170,7 +161,6 @@ export default function RootLayout() {
               drawerItemStyle: { height: 0 }, // 高度为 0
             }}
           />
-
           
           {/* 选项?：测试按钮，用于各种测试，目前是会显示成功录入数据的书籍基础信息，对应 app/DatabaseTest/index.tsx*/}
           {/* 目前是会显示成功录入数据的书籍基础信息，对应 app/DatabaseTest/index.tming*/}

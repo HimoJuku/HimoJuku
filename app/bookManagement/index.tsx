@@ -1,9 +1,8 @@
 // app/bookManagement/index.tsx
-
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import { File, Directory, Paths } from 'expo-file-system/next';
 import { useTheme, Button as PaperButton } from 'react-native-paper';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
@@ -13,6 +12,10 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 
 import { ParseAndSaveEpub } from './epubParser';
 
+import ConvertToEpub from '../txt2epub/converter';
+import { TxtBook } from '../txt2epub/type';
+
+import { stringMd5 } from 'react-native-quick-md5';
 /**
  * BookManagementScreen
  * ----------------------
@@ -21,6 +24,7 @@ import { ParseAndSaveEpub } from './epubParser';
  */
 export default function BookManagementScreen() {
   const [books, setBooks] = useState<{ name: string; uri: string }[]>([]);
+  const [loading, setLoading] = useState(false);
   const theme = useTheme();
   const colorScheme = useColorScheme();
   const tint = Colors[colorScheme ?? 'light'].colors.primary;
@@ -32,38 +36,71 @@ export default function BookManagementScreen() {
     reader: { path: string };
   };
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
-
   // Import file, copy it locally, parse metadata, store in DB, and update list.
   const handleImportBook = async () => {
+    setLoading(true);
     try {
       const result = await DocumentPicker.getDocumentAsync({
         copyToCacheDirectory: true,
         multiple: false,
       });
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        const file = result.assets[0];
-        const { name, uri } = file;
-        const booksDir = FileSystem.documentDirectory + 'books/';
-        const dirInfo = await FileSystem.getInfoAsync(booksDir);
-        if (!dirInfo.exists) {
-          await FileSystem.makeDirectoryAsync(booksDir, { intermediates: true });
+        const pickedFile = result.assets[0];
+        const { name, uri } = pickedFile;
+        // Create books directory if it doesn't exist
+        const booksDir = new Directory(Paths.document, 'books');
+        if (!booksDir.exists) {
+          booksDir.create();
         }
-        const localPath = booksDir + name;
-        await FileSystem.copyAsync({ from: uri, to: localPath });
-        console.log('File copied locally:', localPath);
+        // Create a File object from the picked file URI
+        let sourceFile = new File(uri);
+        const destBaseName = stringMd5(name.replace('.epub', '').replace('.opf', ''));
+        const destName = destBaseName+'.epub';
+        // Check if the file has a valid EPUB extension
+        if(sourceFile.extension != '.epub' && sourceFile.extension != '.opf'){
+          if (sourceFile.extension == '.txt'){
+            console.log('This is a txt file, converting it to epub...');
+            const destFolder = booksDir.uri;
+            console.log('Destination:', destFolder + destName);
+            const txtBook:TxtBook = {
+              type: 'base',
+              bookTitle: name.replace('.txt', ''),
+              destFolder: destFolder,
+              destName: destBaseName,
+              language: 'jp',
+              content: sourceFile.text(),
+          }
+          await ConvertToEpub(txtBook,"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");
+          console.log('File converted to EPUB:', destName);
+          }
+          else{
+          console.log('Invalid file type. Please select an EPUB, OPF or TXT file.');
+          return;
+          }
+        }
+        // Create destination file path in books directory
+        const destFile = new File(booksDir + destName);
+        if (!destFile.exists) {
+        sourceFile.copy(destFile);
+        console.log('File copied locally:', destFile.uri);
+        }else {
+          console.log('File already exists:', destFile.uri);
+        }
         try {
-          const bookId = await ParseAndSaveEpub(localPath);
+          const bookId = await ParseAndSaveEpub(destFile.uri);
           console.log('Successfully parsed and stored to DB, bookId:', bookId);
         } catch (parseErr) {
           console.error('Error parsing/storing EPUB:', parseErr);
         }
-        setBooks(prev => [...prev, { name, uri: localPath }]);
+        
+        setBooks(prev => [...prev, { name, uri: destFile.uri }]);
       } else {
         console.log('No file selected');
       }
     } catch (err) {
       console.error('Error importing file:', err);
     }
+    setLoading(false);
   };
 
   // Navigate to the reader page
@@ -79,6 +116,8 @@ export default function BookManagementScreen() {
         onPress={handleImportBook}
         buttonColor={tint}
         style={{ marginBottom: 16 }}
+        loading={loading}
+        disabled={loading}
       >
         导入书籍
       </PaperButton>

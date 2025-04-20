@@ -50,7 +50,7 @@ export default async function ConvertToEpub(txtBook: TxtBook, apiKey?: string)
                     author: bookAuthor
                 }
             break;
-        }
+            }
     }
     let chapters: Chapter[] = [];
     const { content,destFolder } = txtBook;
@@ -61,9 +61,15 @@ export default async function ConvertToEpub(txtBook: TxtBook, apiKey?: string)
     }
     else{
         // If the key is set, use AI to extract chapter information
-        chapters = await FormatChapterByAI(content, apiKey);
+        for (let i = 0; i < 3; i++){
+            // Retry up to 3 times if the AI fails to extract chapter information
+            chapters = await FormatChapterByAI(content, apiKey);
+            if (chapters.length > 0){
+                console.log("AI successfully extracted chapter information: ", chapters);
+                break;
+            }
+        }
     }
-
     var epub = new EpubBuilder({
         ...settings,
         description: ExtractDescriptionByRegex(txtBook.content),
@@ -79,17 +85,19 @@ export default async function ConvertToEpub(txtBook: TxtBook, apiKey?: string)
             }
         })},
         destFolder);
+        console.log("Epub settings: ", epub.getEpubSettings());
+        console.log("Epub chapters: ", epub.getEpubSettings().chapters);
         if (chapters.length === 0) {
             console.log("No chapters found, please check the content of the book.")
         }
         else{
             try{
-                await epub
-                    .save()
-                    .then((value: string) => console.log(value))
+                console.log("Converting to epub...")
+                await epub.save();
             }catch(error){
             // remove the temp created folder
             await epub.discardChanges();
+            console.log("Error: ", error);
             }
         }
 }
@@ -127,29 +135,30 @@ function FormatChapterByRegex(content: string, chapterRegex?:RegExp): Chapter[] 
     chapterRegex = chapterRegex || /第[\u4e00-\u9fa5]+章\s*"([^"]+)"/;
     let currentChapter: Chapter | null = null;
     let currentContent: string[] = [];
-
+    console.log("Chapter regex: ", chapterRegex);
     for (const line of lines) {
         const match = line.match(chapterRegex);
-
+        
         if (match) {
-            // If we have collected content for a previous chapter, save it
+            const chapterTitle = match[1] || line.trim();
             if (currentChapter) {
-                currentChapter.content = '<p>' + currentContent.join('\n') + '</p>';
+                currentChapter.content = currentContent.join('\n');
+                chapters.push(currentChapter); // 添加到数组
             }
 
-            // Start a new chapter
+            // 开始新章节
             currentChapter = {
-                title: match[1],
+                title: chapterTitle,
                 content: ''
             };
-            currentContent = [line]; // Include the chapter header in the content
+            currentContent = [line]; // 保留章节标题行
         } else if (currentChapter) {
-            // Add the line to the current chapter's content
+            // 添加行到当前章节内容
             currentContent.push('<p>'+line+'</p>');
         }
     }
 
-    // Don't forget the last chapter
+    // 处理最后一章
     if (currentChapter) {
         currentChapter.content = currentContent.join('\n');
         chapters.push(currentChapter);
@@ -158,9 +167,10 @@ function FormatChapterByRegex(content: string, chapterRegex?:RegExp): Chapter[] 
     return chapters;
 }
 
+
 async function FormatChapterByAI(content: string, key: string): Promise<Chapter[]> {
     const sample = content.slice(0, 1000)// Sample the first 1000 words for AI processing
-    const prompt = `你是一个正则表达式语言专家，请根据以下内容，提供一个用于匹配章节的正则表达式，仅需要回复表达式：\n\n${sample}`;
+    const prompt = `你是一个正则表达式语言专家，请根据以下内容，提供一个用于匹配章节的正则表达式，仅需要回复一个正则表达式,不要附带解释与其他信息：\n\n${sample}`;
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -173,20 +183,28 @@ async function FormatChapterByAI(content: string, key: string): Promise<Chapter[
                 {
                 role: 'user',
                 content: prompt,
+                max_tokens:20,
+                reasoning: {
+                    effort: 'high',
+                    max_tokens: 2000, // Allocate 2000 tokens (or approximate effort) for reasoning
+                    exclude: true, // Use reasoning but don't include it in the response
+                  },
                 }]})});
-    const responseText = await response.text();
-    console.log(responseText);
-    const responseJson = await response.json();
-    console.log(responseJson);
-    console.log(response.status)
-    if (response.status === 200) {
-        const data = await response.json();
-        const regex = data.choices[0].message.content.trim();
-        const chapterRegex = new RegExp(regex, 'g');
-        return FormatChapterByRegex(content, chapterRegex);
-    }
-    else {
-        console.error('Error fetching AI response:', response.statusText);
-        return FormatChapterByRegex(content); // Fallback to default regex if AI fails
-    }
+                const responseJson = await response.json();
+                const data = responseJson;
+                const contentText = data.choices[0].message.content.trim();
+                console.log("AI response: ", contentText);
+                // 提取反引号之间的正则表达式
+                const regexMatch = contentText.match(/`(.*?)`/);
+                let regexPattern;
+                if (regexMatch && regexMatch[1]) {
+                    // 找到了反引号中的正则表达式
+                    regexPattern = regexMatch[1];
+                } else {
+                    // 如果没有找到反引号包围的内容，则使用整个content
+                    regexPattern = contentText;
+                }
+                const chapterRegex = new RegExp(regexPattern, 'g');
+                console.log("AI generated regex: ", chapterRegex);
+                return FormatChapterByRegex(content, chapterRegex);
 }
