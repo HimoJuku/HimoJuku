@@ -54,11 +54,7 @@ const paperTheme =
     : { ...MD3LightTheme, colors: Colors.light.colors };
 //Calculate the width of the drawer based on the screen size
 const drawerWidth =
-(
-  (Dimensions.get('window').width<Dimensions.get('window').height)
-  ? Dimensions.get('window').width
-  : Dimensions.get('window').height
-)* 8 / 18 + 20; // 这里调侧栏的大小
+  Dimensions.get('screen').width*0.55
 
 function Header() {
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
