@@ -4,8 +4,8 @@ import { Text, useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 
-import { database } from '../../db';
-import Book from '../../db/book';
+import { database } from '@/db';
+import Book from '@/db/Book';
 
 type DrawerParamList = {
   bookShelf: undefined;

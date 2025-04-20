@@ -1,47 +1,42 @@
 import React from 'react';
+import { Text, useTheme } from 'react-native-paper';
 import {
   View,
   Image,
   StyleSheet,
-  Dimensions
 } from 'react-native';
 import {
   DrawerContentScrollView,
   DrawerItemList,
   DrawerContentComponentProps,
 } from '@react-navigation/drawer';
+import Gradient from '@/components/Gradient';
 
-//Calculate the width of the drawer based on the screen size
-const drawerWidth =
-  (
-    (Dimensions.get('window').width<Dimensions.get('window').height)
-    ? Dimensions.get('window').width
-    : Dimensions.get('window').height
-  )* 8 / 18;
-
-export function CustomDrawerContent(props: DrawerContentComponentProps) {
+// Will become the cover of latest book
+function DrawerCover() {
+  const theme = useTheme();
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={styles.container}>
-      <View style={styles.headerContainer}>
-        <Image
-          source={{ uri: 'https://pic1.imgdb.cn/item/67d09faa066befcec6e366fe.png' }}
-          style={styles.headerImage}
-        />
+      <View style={styles.coverFrame}>
+          <Image
+            source={{ uri: 'https://pic1.imgdb.cn/item/67d09faa066befcec6e366fe.png'}}
+            style={{width: '100%', height: '100%', resizeMode: 'cover', zIndex: -2}}
+          />
+          <Gradient fromColor={theme.colors.primaryContainer}  toColor={theme.colors.primaryContainer} opacityColor1={0} />
       </View>
-
-      <DrawerItemList {...props} />
-    </DrawerContentScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingStart: 0,
+    paddingEnd: 0,
   },
-  headerContainer: {
-    backgroundColor: '#f0f0f0',
-    height: drawerWidth*18/13,
-    width: drawerWidth,
+  coverFrame: {
+    width: '100%',
+    aspectRatio: 10/15,
     padding : 0,
     margin : 0,
   },
@@ -50,3 +45,13 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
 });
+
+export function CustomDrawerContent(props: DrawerContentComponentProps) {
+  return (
+    <DrawerContentScrollView {...props} contentContainerStyle={styles.container}>
+      <DrawerCover />
+      <DrawerItemList {...props} />
+    </DrawerContentScrollView>
+  );
+
+}

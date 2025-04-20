@@ -21,11 +21,11 @@ const SettingsScreen = () => {
   // 主题选项处理
   const themes = ['Light Mode', 'Dark Mode', 'Follow System'];
   const languages = ['中文', 'English'];
-const THEME_OPTIONS = [
-  { label: 'Light Mode', value: 'light' },
-  { label: 'Dark Mode', value: 'dark' },
-  { label: 'Follow System', value: 'system' },
-] as const;
+  const THEME_OPTIONS = [
+    { label: 'Light Mode', value: 'light' },
+    { label: 'Dark Mode', value: 'dark' },
+    { label: 'Follow System', value: 'system' },
+  ] as const;
   const getPreferenceValue = (label: string): ThemePreference => {
     switch (label) {
       case 'Light Mode': return 'light';
