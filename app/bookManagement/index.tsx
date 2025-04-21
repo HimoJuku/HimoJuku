@@ -10,10 +10,10 @@ import { useNavigation } from '@react-navigation/native';
 import { Colors } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-import { ParseAndSaveEpub } from './epubParser';
+import { ParseAndSaveEpub } from '@/app/bookManagement/epubParser';
 
-import ConvertToEpub from '../txt2epub/converter';
-import { TxtBook } from '../txt2epub/type';
+import ConvertToEpub from '@/app/txt2epub/converter';
+import { TxtBook } from '@/app//txt2epub/type';
 
 import { stringMd5 } from 'react-native-quick-md5';
 /**
@@ -56,9 +56,20 @@ export default function BookManagementScreen() {
         let sourceFile = new File(uri);
         const destBaseName = stringMd5(name.replace('.epub', '').replace('.opf', ''));
         const destName = destBaseName+'.epub';
+        const destFile = new File(booksDir.uri + destName);
         // Check if the file has a valid EPUB extension
-        if(sourceFile.extension != '.epub' && sourceFile.extension != '.opf'){
-          if (sourceFile.extension == '.txt'){
+        switch(sourceFile.extension){
+          case '.epub':
+            sourceFile.copy(destFile);
+            break;
+          case '.opf':
+            sourceFile.copy(destFile);
+            break;
+          case '.txt':
+            if (destFile.exists) {
+              console.log('Deleting existing file:', destFile.uri);
+              destFile.delete();
+            }
             console.log('This is a txt file, converting it to epub...');
             const destFolder = booksDir.uri;
             console.log('Destination:', destFolder + destName);
@@ -69,22 +80,19 @@ export default function BookManagementScreen() {
               destName: destBaseName,
               language: 'jp',
               content: sourceFile.text(),
-          }
-          await ConvertToEpub(txtBook,"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");
-          console.log('File converted to EPUB:', destName);
-          }
-          else{
-          console.log('Invalid file type. Please select an EPUB, OPF or TXT file.');
-          return;
-          }
-        }
-        // Create destination file path in books directory
-        const destFile = new File(booksDir + destName);
-        if (!destFile.exists) {
-        sourceFile.copy(destFile);
-        console.log('File copied locally:', destFile.uri);
-        }else {
-          console.log('File already exists:', destFile.uri);
+            };
+              try{
+                await ConvertToEpub(txtBook,"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");
+                console.log('File converted to EPUB:', destName);
+                break;
+              }
+              catch (err) {
+                console.error('Error converting file to EPUB:', err);
+                return;
+              }
+          default:
+            console.log('Invalid file type. Please select an EPUB, OPF or TXT file.');
+            return;
         }
         try {
           const bookId = await ParseAndSaveEpub(destFile.uri);
@@ -92,7 +100,7 @@ export default function BookManagementScreen() {
         } catch (parseErr) {
           console.error('Error parsing/storing EPUB:', parseErr);
         }
-        
+
         setBooks(prev => [...prev, { name, uri: destFile.uri }]);
       } else {
         console.log('No file selected');
