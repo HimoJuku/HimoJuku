@@ -1,7 +1,7 @@
 import { Database } from '@nozbe/watermelondb';
 import LokiJSAdapter from '@nozbe/watermelondb/adapters/lokijs';
-import Book from './Book';
-import { mySchema } from './schema';
+import Book from '@/db/Book';
+import { mySchema } from '@/db/schema';
 
 const adapter = new LokiJSAdapter({
   schema: mySchema,
@@ -11,5 +11,5 @@ const adapter = new LokiJSAdapter({
 
 export const database = new Database({
   adapter,
-  modelClasses: [Book], 
+  modelClasses: [Book],
 });

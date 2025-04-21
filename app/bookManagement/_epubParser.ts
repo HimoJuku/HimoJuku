@@ -1,13 +1,11 @@
-// app/bookManagement/epubParser.ts
-
 import JSZip from 'jszip';
 import { XMLParser } from 'fast-xml-parser';
 import * as FileSystem from 'expo-file-system';
-import { database } from '../../db';
-import Book from '../../db/Book';
+import { database } from '@/db';
+import Book from '@/db/Book';
 
 /**
- * parseAndSaveEpub
+ * ParseAndSaveEpub
  * ----------------
  * Reads a local EPUB file from the given path, parses its metadata (title, author, cover),
  * saves the cover image (if available) in the "covers" directory, and writes the book information
@@ -16,7 +14,7 @@ import Book from '../../db/Book';
  * @param epubPath - The local file path of the EPUB (e.g. "/data/.../books/myBook.epub")
  * @returns The ID of the newly created Book record.
  */
-export async function parseAndSaveEpub(epubPath: string): Promise<string> {
+export async function ParseAndSaveEpub(epubPath: string): Promise<string> {
   const localCoversDir = FileSystem.documentDirectory + 'covers/';
   const dirInfo = await FileSystem.getInfoAsync(localCoversDir);
   if (!dirInfo.exists) {
