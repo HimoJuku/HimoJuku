@@ -3,7 +3,6 @@ import { View, StyleSheet } from 'react-native';
 import React, { useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Directory, Paths } from 'expo-file-system/next';
-import * as FileSystem from 'expo-file-system';
 import { useTheme, Text, Button} from 'react-native-paper';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
@@ -14,7 +13,6 @@ import { TxtBook } from '@/app//txt2epub/type';
 
 import { stringMd5 } from 'react-native-quick-md5';
 import { ParseAndSaveEpub } from './_epubParser';
-import { ThemeContext, ThemePreference } from '../../context/ThemeContext';
 /**
  * BookManagementScreen
  * ----------------------
@@ -87,8 +85,7 @@ export default function BookManagementScreen() {
                 console.error('Error converting file to EPUB:', err);
                 return;
               }
-              
-              
+
           default:
             console.log('Invalid file type. Please select an EPUB, OPF or TXT file.');
             return;

@@ -9,9 +9,9 @@ import { ReaderProvider } from '@epubjs-react-native/core';
 import { Colors } from '@/constants/colors';
 import BookManagementScreen from '@/app/bookManagement/Index';
 import DatabaseTest from '@/app/DatabaseTest/Index';
-import BookshelfScreen from './bookShelf';
+import BookshelfScreen from '@/app/bookShelf';
 
-import SettingsScreen from './settings/index';
+import SettingsScreen from '@/app/settings/index';
 
 import {
   MD3DarkTheme,
