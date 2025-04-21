@@ -26,7 +26,7 @@ export default function ReaderPage({ route }: { route?: any }) {
         console.log('[ReaderPage] getInfoAsync 结果:', info);
 
         if (!info.exists || info.size === 0) {
-          setError(`找不到文件或文件大小为 0：${maybeLocalPath}`);
+          setError(`找不到文件或文件大小为 0:${maybeLocalPath}`);
           setLoading(false);
           return;
         }

@@ -1,18 +1,16 @@
-// app/bookManagement/index.tsx
-
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useContext} from 'react';
+import { View, StyleSheet} from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
-import { useTheme, Button as PaperButton } from 'react-native-paper';
+import { useTheme, Text, Button} from 'react-native-paper';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
 
-import { Colors } from '@/constants/colors';
+import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 import { ParseAndSaveEpub } from './epubParser';
-
+import { ThemeContext, ThemePreference } from '../../context/ThemeContext';
 /**
  * BookManagementScreen
  * ----------------------
@@ -21,9 +19,9 @@ import { ParseAndSaveEpub } from './epubParser';
  */
 export default function BookManagementScreen() {
   const [books, setBooks] = useState<{ name: string; uri: string }[]>([]);
-  const theme = useTheme();
   const colorScheme = useColorScheme();
-  const tint = Colors[colorScheme ?? 'light'].colors.primary;
+  const { themePreference, setThemePreference } = useContext(ThemeContext);
+  const { colors } = useTheme();
   
   type DrawerParamList = {
     bookShelf: undefined;
@@ -72,34 +70,33 @@ export default function BookManagementScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.title, theme.fonts.titleLarge]}>书籍管理</Text>
-      <PaperButton
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title]}>书籍管理</Text>
+      <Button
         mode="contained"
         onPress={handleImportBook}
-        buttonColor={tint}
         style={{ marginBottom: 16 }}
       >
         导入书籍
-      </PaperButton>
+      </Button>
       <View style={styles.bookList}>
         {books.length === 0 ? (
-          <Text style={{ color: theme.colors.onBackground }}>暂无书籍</Text>
+          <Text style={{ color: colors.onBackground }}>暂无书籍</Text>
         ) : (
           books.map((book, index) => (
             <View key={index} style={styles.bookItem}>
-              <Text style={[styles.bookName, { color: theme.colors.onBackground }]}>
+              <Text style={[styles.bookName, { color: colors.onBackground }]}>
                 {book.name}
               </Text>
-              <Text style={{ color: theme.colors.onSurfaceVariant }}>{book.uri}</Text>
-              <PaperButton
+              <Text style={{ color: colors.onSurfaceVariant }}>{book.uri}</Text>
+              <Button
                 mode="contained"
                 onPress={() => handleOpenReader(book.uri)}
-                buttonColor={tint}
+
                 style={{ marginTop: 8 }}
               >
                 阅读此书
-              </PaperButton>
+              </Button>
             </View>
           ))
         )}
@@ -125,7 +122,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderColor: '#ddd',
   },
   bookName: {
     fontWeight: 'bold',
