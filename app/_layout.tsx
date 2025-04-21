@@ -1,32 +1,23 @@
-import React, { useEffect } from 'react';
-import { 
+import React from 'react';
+import {
   useColorScheme,
   Dimensions
 } from 'react-native';
-import { useFonts } from 'expo-font';
-import { Slot, useNavigation } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen'; // Prevents the splash screen from auto-hiding
+import { useNavigation } from 'expo-router';
 import 'react-native-reanimated';
-import { ReaderProvider } from '@epubjs-react-native/core'; // epub阅读器
-import { Colors } from '@/constants/Colors';
-import BookManagementScreen from './bookManagement/index';
-import { database } from '@/db';
-import DatabaseTest from './DatabaseTest/index';
-import BookshelfScreen from './bookShelf';
+import { ReaderProvider } from '@epubjs-react-native/core';
+import { Colors } from '@/constants/colors';
+import BookManagementScreen from '@/app/bookManagement/Index';
+import DatabaseTest from '@/app/DatabaseTest/Index';
+import BookshelfScreen from '@/app/bookShelf';
 
-/* 4.18:merge后解决了一些导致冲突的代码，部分导入没用到，但考虑到后面可能要补充相关功能，所以没删，*/
-
-
-
-import SettingsScreen from './settings/index';
+import SettingsScreen from '@/app/settings/index';
 
 import {
   MD3DarkTheme,
   MD3LightTheme,
   PaperProvider,
-  Appbar,
-  useTheme,
-  ThemeProvider,
+  Appbar
 } from 'react-native-paper';
 
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -36,24 +27,24 @@ import { MaterialIcons } from '@expo/vector-icons';
 import ReaderPage from './(tabs)/reader';
 import { ThemeContext, ThemePreference, ResolvedThemeType  } from '../context/ThemeContext';
 
+
+/// Define the type for the drawer navigator's parameter list
 type DrawerParamList = {
-  picture: undefined; // Placeholder for the image background
+  picture: undefined;
   "bookShelf": undefined;
   bookManagement: undefined;
   settings: undefined;
   reader: { path: string };
   databaseTest: undefined;
-  // ...etc
 };
 
-import { lightColors, darkColors } from '../constants/Colors';
-//SplashScreen.preventAutoHideAsync();
-
-// 创建Drawer
+// Create the drawer navigator
 const Drawer = createDrawerNavigator<DrawerParamList>();
 const drawerWidth =
   Dimensions.get('screen').width*0.58;
-
+/**
+ * Header component for the drawer navigator.
+ */
 function Header() {
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
   return (
@@ -66,19 +57,24 @@ function Header() {
     </Appbar.Header>
   );
 }
-
+/**
+ * Root layout component for the app.
+ * This component sets up the theme context and the drawer navigator.
+ * It also provides a header and a custom drawer content component.
+ */
 export default function RootLayout() {
   const systemColorScheme = useColorScheme();
-  const [themePreference, setThemePreference] = 
-    React.useState<ThemePreference>("system"); // 默认跟随系统
+  // Get the system color scheme (light or dark) from the device settings
+  const [themePreference, setThemePreference] =
+    React.useState<ThemePreference>("system");
 
   const safeSystemTheme = systemColorScheme || "light";
-  const resolvedTheme: ResolvedThemeType = 
+  const resolvedTheme: ResolvedThemeType =
     themePreference === "system" ? safeSystemTheme : themePreference;
+  // Determine the resolved theme based on the user's preference and system settings
   const paperTheme = resolvedTheme === 'dark'
       ? { ...MD3DarkTheme, colors: Colors.dark.colors }
       : { ...MD3LightTheme, colors: Colors.light.colors };
-
   return (
     <ThemeContext.Provider
       value={{
@@ -89,6 +85,7 @@ export default function RootLayout() {
     >
       <PaperProvider theme={paperTheme}>
         <ReaderProvider>
+          {/* Set up the drawer navigator with custom options and screens */}
           <Drawer.Navigator
             initialRouteName="bookShelf"
             drawerContent={(props) => <CustomDrawerContent {...props} />}
@@ -108,10 +105,10 @@ export default function RootLayout() {
                 borderBottomLeftRadius: 0,
                 borderBottomRightRadius: 80,
               },
-              header: () => <Header />, //Override the header that could be turned off in the screen options
+              header: () => <Header />,
             }}
           >
-            {/* 选项1：书架，对应 app/(tabs) 目录或文件 */}
+            {/* Define the screens for the drawer navigator */}
             <Drawer.Screen
               name="bookShelf"
               options={{
@@ -124,10 +121,9 @@ export default function RootLayout() {
                   />
                 )
               }}
-              component={BookshelfScreen}    
+              component={BookshelfScreen}
             />
 
-            {/* 选项2：书籍管理，对应 app/bookManagement/index.tsx*/}
             <Drawer.Screen
               name="bookManagement"
               options={{
@@ -147,18 +143,17 @@ export default function RootLayout() {
               name="reader"
               component={ReaderPage}
               options={{
-                drawerLabel: () => null,  // 不显示
+                // Hide the drawer item for the reader screen
+                drawerLabel: () => null,
                 title: '',
-                drawerItemStyle: { height: 0 }, // 高度为 0
+                // Hide the drawer icon for the reader screen
+                drawerItemStyle: { height: 0 }
               }}
             />
-
-            
-            {/* 选项?：测试按钮，用于各种测试，目前是会显示成功录入数据的书籍基础信息，对应 app/DatabaseTest/index.tsx*/}
-            {/* 目前是会显示成功录入数据的书籍基础信息，对应 app/DatabaseTest/index.tming*/}
+            {/* Add a test screen for database testing */}
             <Drawer.Screen
               name="databaseTest"
-              options={{ 
+              options={{
                 title: 'For Testing',
                 drawerIcon: ({color, size}) => (
                   <MaterialIcons
@@ -171,7 +166,6 @@ export default function RootLayout() {
               component={DatabaseTest}
             />
 
-            {/* 选项3：设置，@ming已实现*/}
             <Drawer.Screen
               name="settings"
               options={{
