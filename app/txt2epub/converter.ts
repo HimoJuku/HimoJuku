@@ -1,5 +1,5 @@
 import {TxtBook,TxtBookWithCover, TxtBookWithAuthor, TxtBookFull,Chapter} from './type';
-import EpubBuilder, { EpubSettings } from '@/react-native-epub-creator';
+import EpubBuilder, { EpubSettings } from '@kaze-desu/react-native-epub-creator';
 
 /**
  * Convert txt book to epub
