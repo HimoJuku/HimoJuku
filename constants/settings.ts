@@ -1,6 +1,6 @@
 import React from "react";
 
-// 定义并导出类型
+
 export type ThemePreference = "light" | "dark" | "system";
 export type ResolvedThemeType = "light" | "dark";
 

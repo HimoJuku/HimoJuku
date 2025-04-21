@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 
 
 import ConvertToEpub from '@/app/txt2epub/converter';
-import { TxtBook } from '@/app//txt2epub/type';
+import { TxtBook } from '@/constants/txtBooks';
 
 import { stringMd5 } from 'react-native-quick-md5';
 import { ParseAndSaveEpub } from './_epubParser';

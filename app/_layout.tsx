@@ -11,7 +11,7 @@ import BookManagementScreen from '@/app/bookManagement/Index';
 import DatabaseTest from '@/app/DatabaseTest/Index';
 import BookshelfScreen from '@/app/bookShelf';
 
-import SettingsScreen from '@/app/settings/index';
+import SettingsScreen from '@/app/settings/Index';
 
 import {
   MD3DarkTheme,
@@ -25,7 +25,7 @@ import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { CustomDrawerContent } from '@/components/CustomDrawerContent';
 import { MaterialIcons } from '@expo/vector-icons';
 import ReaderPage from './(tabs)/reader';
-import { ThemeContext, ThemePreference, ResolvedThemeType  } from '../context/ThemeContext';
+import { ThemeContext, ThemePreference, ResolvedThemeType  } from '../constants/settings';
 
 
 /// Define the type for the drawer navigator's parameter list

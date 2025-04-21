@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 
 import { database } from '@/db';
-import Book from '@/db/Book';
+import Book from '@/db/models/books';
 
 type DrawerParamList = {
   bookShelf: undefined;
@@ -69,11 +69,11 @@ export default function BookshelfScreen() {
 
   return (
     <FlatList
-      key={'grid-3'}       
+      key={'grid-3'}
       data={books}
       keyExtractor={(b) => b.id}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      numColumns={3}                        // 三列网格，后续可调整 
+      numColumns={3}                        // 三列网格，后续可调整
       contentContainerStyle={{ paddingVertical: 12 }}
       renderItem={({ item }) => (
         <TouchableOpacity style={styles.card} onPress={() => openReader(item.filePath)}>
