@@ -1,5 +1,3 @@
-// app/bookManagement/epubParser.ts
-
 import JSZip from 'jszip';
 import { XMLParser } from 'fast-xml-parser';
 import * as FileSystem from 'expo-file-system';
@@ -45,23 +43,23 @@ export async function ParseAndSaveEpub(epubPath: string): Promise<string> {
   const containerObj = parser.parse(containerXmlText);
 
   const container = containerObj.container;
-  if (!container || !container.rootFiles) {
-    throw new Error('EPUB parse error: missing <container> or <rootFiles>');
+  if (!container || !container.rootfiles) {
+    throw new Error('EPUB parse error: missing <container> or <rootfiles>');
   }
-  let rootFile = container.rootFiles.rootFile;
-  if (Array.isArray(rootFile)) {
-    rootFile = rootFile[0];
+  let rootfile = container.rootfiles.rootfile;
+  if (Array.isArray(rootfile)) {
+    rootfile = rootfile[0];
   }
-  if (!rootFile || !rootFile['@_full-path']) {
-    throw new Error('EPUB parse error: no "@_full-path" found in rootFile');
+  if (!rootfile || !rootfile['@_full-path']) {
+    throw new Error('EPUB parse error: no "@_full-path" found in rootfile');
   }
-  const rootFilePath = rootFile['@_full-path'];
-  const rootDir = rootFilePath.substring(0, rootFilePath.lastIndexOf('/') + 1) || '';
+  const rootfilePath = rootfile['@_full-path'];
+  const rootDir = rootfilePath.substring(0, rootfilePath.lastIndexOf('/') + 1) || '';
 
   // Read and parse the OPF file
-  const opfFile = zip.file(rootFilePath);
+  const opfFile = zip.file(rootfilePath);
   if (!opfFile) {
-    throw new Error(`EPUB parse error: OPF file not found at ${rootFilePath}`);
+    throw new Error(`EPUB parse error: OPF file not found at ${rootfilePath}`);
   }
   const opfText = await opfFile.async('text');
   const opfParser = new XMLParser({ ignoreAttributes: false });

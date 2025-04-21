@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-import { ParseAndSaveEpub } from './epubParser';
+import { ParseAndSaveEpub } from './_epubParser';
 import { ThemeContext, ThemePreference } from '../../context/ThemeContext';
 /**
  * BookManagementScreen
