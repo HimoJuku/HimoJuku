@@ -9,22 +9,22 @@ import { ReaderProvider } from '@epubjs-react-native/core';
 import { Colors } from '@/constants/colors';
 import BookManagementScreen from '@/app/bookManagement/Index';
 import DatabaseTest from '@/app/DatabaseTest/Index';
-import BookshelfScreen from '@/app/bookShelf';
-
+import BookshelfScreen from '@/app/bookShelf/Index';
 import SettingsScreen from '@/app/settings/Index';
 
 import {
   MD3DarkTheme,
   MD3LightTheme,
   PaperProvider,
-  Appbar
+  Appbar,
+  useTheme,
 } from 'react-native-paper';
 
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { CustomDrawerContent } from '@/components/CustomDrawerContent';
 import { MaterialIcons } from '@expo/vector-icons';
-import ReaderPage from './(tabs)/reader';
+import ReaderPage from './(tabs)/Reader';
 import { ThemeContext, ThemePreference, ResolvedThemeType  } from '../constants/settings';
 
 
