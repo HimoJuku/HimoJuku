@@ -46,12 +46,13 @@ const drawerWidth =
  * Header component for the drawer navigator.
  */
 function Header() {
+  const theme = useTheme();
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
   return (
     <Appbar.Header mode='center-aligned'>
       <Appbar.Action icon="menu" onPress={() => navigation.openDrawer()} />
       <Appbar.Action icon= ""/>
-      <Appbar.Content title="Himojuku"/>
+      <Appbar.Content title="Himojuku" color={theme.colors.primary}/>
       <Appbar.Action icon="magnify" onPress={() => {}} />
       <Appbar.Action icon="dots-vertical" onPress={() => {}} />
     </Appbar.Header>
