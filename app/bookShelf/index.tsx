@@ -1,11 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, RefreshControl, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { Text, useTheme } from 'react-native-paper';
+import { 
+  View, 
+  FlatList, 
+  RefreshControl, 
+  StyleSheet, 
+  TouchableOpacity, 
+  Image, 
+  Dimensions
+} from 'react-native';
+import { 
+  Surface, 
+  Text, 
+  useTheme,
+  Card,
+  Button,
+  List,
+  Avatar
+} from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 
 import { database } from '@/db';
 import Book from '@/db/Book';
+import CardTitle from 'react-native-paper/lib/typescript/components/Card/CardTitle';
 
 type DrawerParamList = {
   bookShelf: undefined;
@@ -52,62 +69,110 @@ export default function BookshelfScreen() {
     const fresh = await database.get<Book>('books').query().fetch();
     setBooks(fresh);
     setRefreshing(false);
+    console.log(books.map((b) => b.id));
   };
 
-  //点击封面 > 打开阅读器
+  //Open reader method
   const openReader = (path: string) => {
     navigation.navigate('reader', { path });
   };
 
+  //Waiting for more detailed changes by @karl@xiaohuo
+  const styles = StyleSheet.create({
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    /*
+    // 3 row cards
+    card: {
+      width: '30%',
+      marginHorizontal: '1.66%',
+      marginBottom: 12,
+      alignItems: 'center',
+    },
+    */
+    // 1 row cards
+    card: {
+      alignItems: 'center',
+      flexDirection: 'row',
+    },
+    cover: {
+      height: '100%',
+      aspectRatio: 0.72,
+      borderRadius: 4,
+      backgroundColor: '#CCC',
+    },
+    title: { fontSize: 12, fontWeight: 'bold', marginTop: 4, textAlign: 'center' },
+    author: {fontSize: 10, color: theme.colors.outline, marginTop: 2},
+  });
+
   if (books.length === 0) {
     return (
-      <View style={styles.center}>
-        <Text style={{ color: theme.colors.onBackground }}>暂无书籍，去“书籍管理”导入吧！</Text>
-      </View>
+      <Surface 
+        style={{ flex: 1, backgroundColor: theme.colors.surface }} elevation={0}
+      >
+        <View style={styles.center}>
+          <Text style={{ color: theme.colors.onSurface }}>
+            Empty Shelf
+            {'\n'}
+            {'\n'}
+            {'\n'}
+            {'\n'}
+            {'\n'}
+          </Text>
+        </View>
+      </Surface>
     );
   }
 
+
+
   return (
-    <FlatList
-      key={'grid-3'}       
-      data={books}
-      keyExtractor={(b) => b.id}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      numColumns={3}                        // 三列网格，后续可调整 
-      contentContainerStyle={{ paddingVertical: 12 }}
-      renderItem={({ item }) => (
-        <TouchableOpacity style={styles.card} onPress={() => openReader(item.filePath)}>
-          <Image
-            source={
-              item.coverUrl
-                ? { uri: item.coverUrl }
-                : require('../../assets/images/cover-placeholder.png') // 占位图
-            }
-            style={styles.cover}
-          />
-          <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
-          <Text style={styles.author}>{item.author || '未知作者'}</Text>
-        </TouchableOpacity>
-      )}
-    />
+    <Surface 
+      style={{ flex: 1, backgroundColor: theme.colors.surface }} elevation={0}
+    >
+      <FlatList
+        data={books}
+        keyExtractor={(b,) => b.id}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        renderItem={({ item }) => (
+          <Card
+            elevation={0}
+            onPress={() => openReader(item.filePath)}
+          >
+
+            <Card.Title
+              style= {{
+                flexDirection: 'row',
+                padding: 10
+              }}
+              title={item.title}
+              titleNumberOfLines={2}
+              subtitle= {item.author}
+              left={(props) => (
+                <Image
+                  style={{
+                    height: props.size,
+                    borderRadius: 0,
+                    flex: 1,
+                    width: '100%',
+                  }}
+                  source={
+                    item.coverUrl
+                      ? { uri: item.coverUrl }
+                      : require('@/assets/images/cover-placeholder.png') // 占位图
+                  }
+                />
+              )}
+              leftStyle ={{
+                aspectRatio: 0.72,
+                borderRadius: 4,
+                backgroundColor: '#CCC',
+                padding: 0,
+                width: '18%',
+              }}
+            />
+          </Card>
+        )}
+      />
+    </Surface>
   );
 }
-
-//Waiting for more detailed changes by @karl@xiaohuo
-const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  card: {
-    width: '30%',               // 为了塞下三列
-    marginHorizontal: '1.66%',
-    marginBottom: 12,
-    alignItems: 'center',
-  },
-  cover: {
-    width: '100%',
-    aspectRatio: 0.72,
-    borderRadius: 4,
-    backgroundColor: '#CCC',
-  },
-  title: { fontSize: 12, fontWeight: 'bold', marginTop: 4, textAlign: 'center' },
-  author: { fontSize: 10, color: '#666', marginTop: 2 },
-});

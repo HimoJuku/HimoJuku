@@ -3,7 +3,7 @@ import {
   useColorScheme,
   Dimensions
 } from 'react-native';
-import { useFonts } from 'expo-font';
+import { configureFonts } from 'react-native-paper';
 import { Slot, useNavigation } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen'; // Prevents the splash screen from auto-hiding
 import 'react-native-reanimated';
@@ -46,21 +46,19 @@ type DrawerParamList = {
   // ...etc
 };
 
-import { lightColors, darkColors } from '../constants/Colors';
-//SplashScreen.preventAutoHideAsync();
-
 // Initialize the Drawer
 const Drawer = createDrawerNavigator<DrawerParamList>();
 const drawerWidth =
   Dimensions.get('screen').width*0.58;
 
 function Header() {
+  const theme = useTheme();
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
   return (
     <Appbar.Header mode='center-aligned'>
       <Appbar.Action icon="menu" onPress={() => navigation.openDrawer()} />
       <Appbar.Action icon= ""/>
-      <Appbar.Content title="Himojuku"/>
+      <Appbar.Content title="Himojuku" color={theme.colors.primary}/>
       <Appbar.Action icon="magnify" onPress={() => {}} />
       <Appbar.Action icon="dots-vertical" onPress={() => {}} />
     </Appbar.Header>
@@ -76,8 +74,12 @@ export default function RootLayout() {
   const resolvedTheme: ResolvedThemeType = 
     themePreference === "system" ? safeSystemTheme : themePreference;
   const paperTheme = resolvedTheme === 'dark'
-      ? { ...MD3DarkTheme, colors: Colors.dark.colors }
-      : { ...MD3LightTheme, colors: Colors.light.colors };
+      ? { ...MD3DarkTheme, 
+          colors: Colors.dark.colors, 
+      }
+      : { ...MD3LightTheme, 
+          colors: Colors.light.colors 
+      };
 
   return (
     <ThemeContext.Provider
