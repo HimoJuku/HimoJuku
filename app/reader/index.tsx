@@ -67,7 +67,7 @@ export default function ReaderPage() {
   if (error || !validPath) {
     return (
       <SafeAreaView style={styles.center}>
-        <Text style={{ color: 'red', fontWeight: 'bold' }}>❌ 加载失败</Text>
+        <Text style={{ color: 'red', fontWeight: 'bold' }}> 加载失败</Text>
         <Text style={{ marginTop: 10 }}>{error}</Text>
       </SafeAreaView>
     );
