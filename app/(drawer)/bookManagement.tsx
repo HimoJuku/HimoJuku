@@ -50,9 +50,17 @@ export default function BookManagementScreen() {
         // Check if the file has a valid EPUB extension
         switch(sourceFile.extension){
           case '.epub':
+            if (destFile.exists) {
+              console.log('Deleting existing EPUB file before copy:', destFile.uri);
+              destFile.delete();
+            }
             sourceFile.copy(destFile);
             break;
           case '.opf':
+            if (destFile.exists) {
+              console.log('Deleting existing EPUB file before copy:', destFile.uri);
+              destFile.delete();
+            }
             sourceFile.copy(destFile);
             break;
           case '.txt':
