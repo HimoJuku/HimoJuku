@@ -42,6 +42,7 @@ export default function BookManagementScreen() {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const pickedFile = result.assets[0];
         const { name, uri } = pickedFile;
+        console.log('directory:', Paths.cache);
         // Create books directory if it doesn't exist
         const booksDir = new Directory(Paths.document, 'books');
         if (!booksDir.exists) {

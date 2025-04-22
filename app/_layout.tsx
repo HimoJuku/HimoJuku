@@ -7,10 +7,10 @@ import { useNavigation } from 'expo-router';
 import 'react-native-reanimated';
 import { ReaderProvider } from '@epubjs-react-native/core';
 import { Colors } from '@/constants/colors';
-import BookManagementScreen from '@/app/bookManagement/Index';
-import DatabaseTest from '@/app/DatabaseTest/Index';
-import BookshelfScreen from '@/app/bookShelf/Index';
-import SettingsScreen from '@/app/settings/Index';
+import BookManagementScreen from '@/app/bookManagement/index';
+import DatabaseTest from '@/app/DatabaseTest/index';
+import BookshelfScreen from '@/app/bookShelf/index';
+import SettingsScreen from '@/app/settings/index';
 
 import {
   MD3DarkTheme,
@@ -24,7 +24,7 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { CustomDrawerContent } from '@/components/CustomDrawerContent';
 import { MaterialIcons } from '@expo/vector-icons';
-import ReaderPage from './(tabs)/Reader';
+import ReaderPage from '@/app/(tabs)/Reader';
 import { ThemeContext, ThemePreference, ResolvedThemeType  } from '../constants/settings';
 
 
