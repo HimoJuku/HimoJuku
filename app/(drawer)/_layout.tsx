@@ -12,7 +12,7 @@ export default function DrawerLayout() {
     const drawerWidth = Dimensions.get('screen').width*0.58;
     return (
             <Drawer
-            initialRouteName="index"
+            initialRouteName="bookShelf"
             drawerContent={(props) => <CustomDrawerContent {...props} />}
             screenOptions={() => ({
                 drawerActiveTintColor: useTheme().colors.onPrimary,
@@ -33,7 +33,7 @@ export default function DrawerLayout() {
                 header: () => <Header/>,
                 })}>
                 <Drawer.Screen
-                    name="index"
+                    name="bookShelf"
                     options={{
                     title: 'Book Shelf',
                     drawerIcon: ({color, size}) => (
