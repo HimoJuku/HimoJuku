@@ -1,149 +1,119 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  Image,
+  ScrollView,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { database } from '@/db';
-import Settings from '@/db/models/settings';
-import { Button } from 'react-native-paper';
-import { ThemePreference } from '@/constants/settings';
+import Book from '@/db/models/books';
+import Chapter from '@/db/models/Chapter';
+import { Q } from '@nozbe/watermelondb';
 
-export default function SettingsDatabaseTest() {
+type ChapterMap = Record<string, Chapter[]>;
+
+export default function DatabaseTest() {
   const [loading, setLoading] = useState(true);
-  const [settings, setSettings] = useState<Settings | null>(null);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [chaptersMap, setChaptersMap] = useState<ChapterMap>({});
   const [error, setError] = useState<string | null>(null);
 
-  // 从数据库获取设置
-  const fetchSettings = async () => {
+  const fetchBooks = async () => {
     try {
       setLoading(true);
-      const settingsRecords = await database.collections.get<Settings>('settings').query().fetch();
-      console.log('获取到的设置:', settingsRecords);
-      setSettings(settingsRecords.length > 0 ? settingsRecords[0] : null);
+      const fetchedBooks = await database.collections
+        .get<Book>('books')
+        .query()
+        .fetch();
+      setBooks(fetchedBooks);
+
+      const chapterResults: ChapterMap = {};
+
+      // 遍历每本书，读取对应章节
+      for (const book of fetchedBooks) {
+        const chs = await database.collections
+          .get<Chapter>('chapters')
+          .query(Q.where('book_id', book.id), Q.sortBy('order', 'asc') )
+          .fetch();
+        chapterResults[book.id] = chs;
+        console.log(`Book "${book.title}" chapters:`, chs.slice(0, 5).map(c => c.title));
+      }
+
+      setChaptersMap(chapterResults);
     } catch (err: any) {
       setError(err.message || String(err));
-      console.error('设置数据库测试错误:', err);
+      console.error('Database test error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // 创建默认设置
-  const createDefaultSettings = async () => {
-    try {
-      setLoading(true);
-      await database.write(async () => {
-        const settingsCollection = database.collections.get<Settings>('settings');
-        const newSettings = await settingsCollection.create(settings => {
-          settings.ThemePreference = 'system';
-        });
-        setSettings(newSettings);
-      });
-      console.log('创建默认设置成功');
-    } catch (err: any) {
-      setError(err.message || String(err));
-      console.error('创建设置错误:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 更新主题偏好
-  const updateThemePreference = async (newTheme: ThemePreference) => {
-    if (!settings) return;
-    
-    try {
-      setLoading(true);
-      await database.write(async () => {
-        await settings.update(record => {
-          record.ThemePreference = newTheme;
-        });
-      });
-      console.log('主题偏好更新为:', newTheme);
-      await fetchSettings(); // 更新后刷新数据
-    } catch (err: any) {
-      setError(err.message || String(err));
-      console.error('更新主题偏好错误:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 页面聚焦时加载数据
   useFocusEffect(
     useCallback(() => {
-      fetchSettings();
+      fetchBooks();
     }, [])
   );
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={styles.center}>
         <ActivityIndicator size="large" />
-        <Text style={styles.message}>正在加载设置数据...</Text>
+        <Text style={styles.message}>正在加载数据库数据...</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.error}>设置数据库测试出错: {error}</Text>
-        <Button mode="contained" onPress={fetchSettings} style={styles.button}>
-          重试
-        </Button>
+      <View style={styles.center}>
+        <Text style={styles.error}>数据库测试出错: {error}</Text>
       </View>
     );
   }
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>设置数据库测试</Text>
-      
-      {!settings ? (
-        <View>
-          <Text style={styles.emptyText}>未找到设置记录</Text>
-          <Button mode="contained" onPress={createDefaultSettings} style={styles.button}>
-            创建默认设置
-          </Button>
-        </View>
+      <Text style={styles.title}>📘 数据库测试 - 书籍与章节信息</Text>
+      {books.length === 0 ? (
+        <Text style={styles.emptyText}>暂无书籍记录</Text>
       ) : (
-        <View style={styles.settingsContainer}>
-          <Text style={styles.settingsItem}>
-            当前主题设置: <Text style={styles.valueText}>{settings.ThemePreference}</Text>
-          </Text>
-          
-          <Text style={styles.sectionTitle}>更新主题设置:</Text>
-          <View style={styles.buttonContainer}>
-            <Button 
-              mode="outlined" 
-              onPress={() => updateThemePreference('light')}
-              style={[styles.themeButton, settings.ThemePreference === 'light' && styles.activeButton]}
-            >
-              浅色模式
-            </Button>
-            <Button 
-              mode="outlined" 
-              onPress={() => updateThemePreference('dark')}
-              style={[styles.themeButton, settings.ThemePreference === 'dark' && styles.activeButton]}
-            >
-              深色模式
-            </Button>
-            <Button 
-              mode="outlined" 
-              onPress={() => updateThemePreference('system')}
-              style={[styles.themeButton, settings.ThemePreference === 'system' && styles.activeButton]}
-            >
-              跟随系统
-            </Button>
-          </View>
-          
-          <Button 
-            mode="contained" 
-            onPress={fetchSettings}
-            style={styles.refreshButton}
-          >
-            刷新设置
-          </Button>
-        </View>
+        books.map((book) => {
+          const bookChapters = chaptersMap[book.id] || [];
+
+          return (
+            <View key={book.id} style={styles.bookBlock}>
+              <View style={styles.bookItem}>
+                <Text style={styles.bookTitle}>📖 书名: {book.title}</Text>
+                <Text>✍ 作者: {book.author || '-'}</Text>
+                <Text>📄 路径: {book.filePath}</Text>
+                <Text>🕒 导入时间: {new Date(book.importedAt).toLocaleString()}</Text>
+              </View>
+
+              <View style={styles.chapterBlock}>
+                <Text style={styles.subtitle}>📑 章节信息</Text>
+                {bookChapters.length === 0 ? (
+                  <Text style={styles.emptyText}>暂无章节数据</Text>
+                ) : (
+                  <>
+                    <Text style={styles.chapterCount}>
+                      共 {bookChapters.length} 章，预览前 {Math.min(bookChapters.length, 3)} 章：
+                    </Text>
+                    {bookChapters.slice(0, 3).map((ch, idx) => (
+                      <Text key={ch.id} style={styles.chapterItem}>
+                        {idx + 1}. {ch.title}
+                      </Text>
+                    ))}
+                  </>
+                )}
+              </View>
+
+              <View style={styles.divider} />
+            </View>
+          );
+        })
       )}
     </ScrollView>
   );
@@ -155,10 +125,22 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
   },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 8,
+    marginBottom: 4,
   },
   message: {
     marginTop: 8,
@@ -166,50 +148,39 @@ const styles = StyleSheet.create({
   error: {
     color: 'red',
     fontSize: 16,
-    marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 14,
     fontStyle: 'italic',
-    marginBottom: 16,
+    marginBottom: 4,
   },
-  settingsContainer: {
-    width: '100%',
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-  },
-  settingsItem: {
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  valueText: {
-    fontWeight: 'bold',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  bookBlock: {
     marginBottom: 24,
   },
-  themeButton: {
-    flex: 1,
-    marginHorizontal: 4,
+  bookItem: {
+    paddingVertical: 8,
   },
-  activeButton: {
-    backgroundColor: '#e6f7ff',
-    borderColor: '#1890ff',
+  bookTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 2,
   },
-  button: {
+  chapterBlock: {
     marginTop: 8,
+    marginLeft: 8,
   },
-  refreshButton: {
-    marginTop: 16,
-  }
+  chapterCount: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  chapterItem: {
+    fontSize: 14,
+    marginBottom: 2,
+    marginLeft: 8,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#ccc',
+    marginVertical: 12,
+  },
 });

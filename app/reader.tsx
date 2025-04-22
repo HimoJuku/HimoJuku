@@ -1,10 +1,14 @@
+// app/reader.tsx
+
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, Text, ActivityIndicator } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { Reader } from '@epubjs-react-native/core';
 import { useFileSystem } from '@epubjs-react-native/expo-file-system';
+import { useLocalSearchParams } from 'expo-router';
 
-export default function ReaderPage({ route }: { route?: any }) {
+export default function ReaderPage() {
+  const { path } = useLocalSearchParams<{ path: string }>();
   const [loading, setLoading] = useState(true);
   const [validPath, setValidPath] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -12,13 +16,12 @@ export default function ReaderPage({ route }: { route?: any }) {
   useEffect(() => {
     async function checkLocalFile() {
       try {
-        const localPath: string = route?.params?.path;
-
-        if (!localPath) {
+        if (!path) {
           setError('未传入本地文件路径');
-          setLoading(false);
           return;
         }
+        // 如果参数被 URL-encode 过，需要 decode
+        const localPath = decodeURIComponent(path);
 
         console.log('[ReaderPage] 收到路径:', localPath);
 
@@ -26,8 +29,7 @@ export default function ReaderPage({ route }: { route?: any }) {
         console.log('[ReaderPage] getInfoAsync 结果:', info);
 
         if (!info.exists || info.size === 0) {
-          setError(`找不到文件或文件大小为 0:${localPath}`);
-          setLoading(false);
+          setError(`找不到文件或文件大小为 0: ${localPath}`);
           return;
         }
 
@@ -40,7 +42,7 @@ export default function ReaderPage({ route }: { route?: any }) {
     }
 
     checkLocalFile();
-  }, [route]);
+  }, [path]);
 
   if (loading) {
     return (

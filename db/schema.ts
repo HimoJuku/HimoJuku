@@ -17,11 +17,23 @@ export const mySchema = appSchema({
         { name: 'lastReadPosition', type:'string', isOptional: true},
       ],
     }),
+
     tableSchema({
       name: 'settings',
       columns: [
         { name: 'ThemePreference', type: 'string' }
       ],
     }),
+
+    tableSchema({
+      name: 'chapters',
+      columns: [
+        { name: 'book_id',       type: 'string', isIndexed: true },
+        { name: 'title',         type: 'string' },
+        { name: 'href',          type: 'string' },  
+        { name: 'order',         type: 'number' },       
+      ],
+    }),
+
   ],
 });
