@@ -1,23 +1,23 @@
 import { View, StyleSheet, ViewProps, DimensionValue } from 'react-native'
 import Svg, { Defs, Rect, LinearGradient, Stop } from 'react-native-svg'
 
-type GradientProps = { 
-  fromColor: string
-  toColor: string
-  children?: any
-  height?: DimensionValue,
-  opacityColor1?: number
-  opacityColor2?: number 
+type GradientProps = {
+    fromColor: string
+    toColor: string
+    children?: any
+    height?: DimensionValue,
+    opacityColor1?: number
+    opacityColor2?: number
 } & ViewProps
 
-function Gradient({ 
-  children, 
-  fromColor, 
-  toColor, 
-  height = '100%', 
-  opacityColor1 = 1, 
-  opacityColor2 = 1, 
-  ...otherViewProps 
+function Gradient({
+    children,
+    fromColor,
+    toColor,
+    height = '100%',
+    opacityColor1 = 1,
+    opacityColor2 = 1,
+    ...otherViewProps
 }: GradientProps) {
     const gradientUniqueId = `grad${fromColor}+${toColor}`.replace(/[^a-zA-Z0-9 ]/g, '')
     return <>

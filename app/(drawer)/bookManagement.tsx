@@ -4,33 +4,27 @@ import React, { useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Directory, Paths } from 'expo-file-system/next';
 import { useTheme, Text, Button} from 'react-native-paper';
-import { DrawerNavigationProp } from '@react-navigation/drawer';
-import { useNavigation } from '@react-navigation/native';
 
-
-import ConvertToEpub from '@/app/txt2epub/converter';
+import ConvertToEpub from '@/txt2epub/converter';
 import { TxtBook } from '@/constants/txtBooks';
 
 import { stringMd5 } from 'react-native-quick-md5';
-import { ParseAndSaveEpub } from './_epubParser';
+import { ParseAndSaveEpub } from '@/functions/_epubParser';
+
+import { useRouter } from 'expo-router';
+
 /**
  * BookManagementScreen
  * ----------------------
  * Allows users to import an EPUB file, copy it to the app's storage, and then
  * parse the file to extract and save its metadata into the database.
  */
+
 export default function BookManagementScreen() {
   const [books, setBooks] = useState<{ name: string; uri: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const { colors } = useTheme();
-  
-  type DrawerParamList = {
-    bookShelf: undefined;
-    bookManagement: undefined;
-    settings: undefined;
-    reader: { path: string };
-  };
-  const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
+  const router = useRouter();
   // Import file, copy it locally, parse metadata, store in DB, and update list.
   const handleImportBook = async () => {
     setLoading(true);
@@ -110,9 +104,14 @@ export default function BookManagementScreen() {
 
   // Navigate to the reader page
   const handleOpenReader = (path: string) => {
-    navigation.navigate('reader', { path });
-  };
-
+    router.push(
+      {
+        pathname: '/reader',
+        params: {
+          path: path,
+        }
+      })
+    };
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.title]}>书籍管理</Text>
