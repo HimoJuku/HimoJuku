@@ -75,7 +75,7 @@ export default function DatabaseTest() {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>📘 数据库测试 - 书籍与章节信息</Text>
+      <Text style={styles.title}> 数据库测试 - 书籍与章节信息</Text>
       {books.length === 0 ? (
         <Text style={styles.emptyText}>暂无书籍记录</Text>
       ) : (
@@ -85,14 +85,14 @@ export default function DatabaseTest() {
           return (
             <View key={book.id} style={styles.bookBlock}>
               <View style={styles.bookItem}>
-                <Text style={styles.bookTitle}>📖 书名: {book.title}</Text>
-                <Text>✍ 作者: {book.author || '-'}</Text>
-                <Text>📄 路径: {book.filePath}</Text>
-                <Text>🕒 导入时间: {new Date(book.importedAt).toLocaleString()}</Text>
+                <Text style={styles.bookTitle}> 书名: {book.title}</Text>
+                <Text> 作者: {book.author || '-'}</Text>
+                <Text> 路径: {book.filePath}</Text>
+                <Text> 导入时间: {new Date(book.importedAt).toLocaleString()}</Text>
               </View>
 
               <View style={styles.chapterBlock}>
-                <Text style={styles.subtitle}>📑 章节信息</Text>
+                <Text style={styles.subtitle}> 章节信息</Text>
                 {bookChapters.length === 0 ? (
                   <Text style={styles.emptyText}>暂无章节数据</Text>
                 ) : (
