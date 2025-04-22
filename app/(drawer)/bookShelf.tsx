@@ -1,36 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  FlatList, 
-  RefreshControl, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Image, 
-  Dimensions
+import {
+  View,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Image
 } from 'react-native';
-import { 
-  Surface, 
-  Text, 
+import {
+  Surface,
+  Text,
   useTheme,
-  Card,
-  Button,
-  List,
-  Avatar
+  Card
 } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
-import { DrawerNavigationProp } from '@react-navigation/drawer';
+import { useRouter } from 'expo-router';
 
 import { database } from '@/db';
 import Book from '@/db/models/books';
-import CardTitle from 'react-native-paper/lib/typescript/components/Card/CardTitle';
-
-type DrawerParamList = {
-  bookShelf: undefined;
-  bookManagement: undefined;
-  settings: undefined;
-  reader: { path: string };
-  databaseTest: undefined;
-};
 
 /**
  * Bookshelf
@@ -42,7 +27,7 @@ type DrawerParamList = {
  *
  * DONE：
  *  1.自动从数据库读取（或下拉刷新）最新书籍信息，用简易faltlist显示封面、作者等信息
- * 
+ *
  * TODO：
  *  1. 完成详细书架页面UI实现
  *  2. 加入分页等功能
@@ -56,7 +41,7 @@ export default function BookshelfScreen() {
   const [books, setBooks] = useState<Book[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const theme = useTheme();
-  const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
+  const router = useRouter();
 
   /** 实时订阅 Book 表 */
   useEffect(() => {
@@ -74,22 +59,19 @@ export default function BookshelfScreen() {
 
   //Open reader method
   const openReader = (path: string) => {
-    navigation.navigate('reader', { path });
+    router.push(
+      {
+        pathname: '/reader',
+        params: {
+          path: path
+        }
+      }
+    );
   };
 
-  //Waiting for more detailed changes by @karl@xiaohuo
+
   const styles = StyleSheet.create({
     center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-    /*
-    // 3 row cards
-    card: {
-      width: '30%',
-      marginHorizontal: '1.66%',
-      marginBottom: 12,
-      alignItems: 'center',
-    },
-    */
-    // 1 row cards
     card: {
       alignItems: 'center',
       flexDirection: 'row',
@@ -106,7 +88,7 @@ export default function BookshelfScreen() {
 
   if (books.length === 0) {
     return (
-      <Surface 
+      <Surface
         style={{ flex: 1, backgroundColor: theme.colors.surface }} elevation={0}
       >
         <View style={styles.center}>
@@ -126,7 +108,7 @@ export default function BookshelfScreen() {
 
 
   return (
-    <Surface 
+    <Surface
       style={{ flex: 1, backgroundColor: theme.colors.surface }} elevation={0}
     >
       <FlatList
@@ -158,7 +140,7 @@ export default function BookshelfScreen() {
                   source={
                     item.coverUrl
                       ? { uri: item.coverUrl }
-                      : require('@/assets/images/cover-placeholder.png') // 占位图
+                      : require('@/assets/images/cover-placeholder.png')
                   }
                 />
               )}
