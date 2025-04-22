@@ -22,7 +22,8 @@ import { DrawerNavigationProp } from '@react-navigation/drawer';
 
 import { database } from '@/db';
 import Book from '@/db/models/books';
-import CardTitle from 'react-native-paper/lib/typescript/components/Card/CardTitle';
+import * as Sort from '@/app/bookShelf/sort';
+import * as Shelf from '@/components/ShelfItem';
 
 type DrawerParamList = {
   bookShelf: undefined;
@@ -79,7 +80,7 @@ export default function BookshelfScreen() {
 
   //Waiting for more detailed changes by @karl@xiaohuo
   const styles = StyleSheet.create({
-    center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginBottom: '10%'},
     /*
     // 3 row cards
     card: {
@@ -104,75 +105,39 @@ export default function BookshelfScreen() {
     author: {fontSize: 10, color: theme.colors.outline, marginTop: 2},
   });
 
-  if (books.length === 0) {
-    return (
-      <Surface 
-        style={{ flex: 1, backgroundColor: theme.colors.surface }} elevation={0}
-      >
-        <View style={styles.center}>
-          <Text style={{ color: theme.colors.onSurface }}>
-            Empty Shelf
-            {'\n'}
-            {'\n'}
-            {'\n'}
-            {'\n'}
-            {'\n'}
-          </Text>
-        </View>
-      </Surface>
-    );
-  }
-
-
-
   return (
     <Surface 
       style={{ flex: 1, backgroundColor: theme.colors.surface }} elevation={0}
     >
-      <FlatList
-        data={books}
-        keyExtractor={(b,) => b.id}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        renderItem={({ item }) => (
-          <Card
-            elevation={0}
-            onPress={() => openReader(item.filePath)}
-          >
+      <View
+        style={{
+          alignItems: 'flex-start',
+        }}
+      >
+        <Button
+          mode="outlined"
+          onPress={()=>console.log('Hi')}
+        >
+          Press me
+        </Button>
+      </View>
 
-            <Card.Title
-              style= {{
-                flexDirection: 'row',
-                padding: 10
-              }}
-              title={item.title}
-              titleNumberOfLines={2}
-              subtitle= {item.author}
-              left={(props) => (
-                <Image
-                  style={{
-                    height: props.size,
-                    borderRadius: 0,
-                    flex: 1,
-                    width: '100%',
-                  }}
-                  source={
-                    item.coverUrl
-                      ? { uri: item.coverUrl }
-                      : require('@/assets/images/cover-placeholder.png') // 占位图
-                  }
-                />
-              )}
-              leftStyle ={{
-                aspectRatio: 0.72,
-                borderRadius: 4,
-                backgroundColor: '#CCC',
-                padding: 0,
-                width: '18%',
-              }}
-            />
-          </Card>
-        )}
-      />
+      if (books.length === 0) {
+        <View style={styles.center}>
+          <Text style={{ color: theme.colors.onSurface }}>
+            Empty Shelf
+          </Text>
+        </View>
+      }
+      else {
+        <FlatList
+          data={books}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          renderItem={({ item }) => (
+            Shelf.BookItem(item)
+          )}
+        />
+      }
     </Surface>
   );
 }
