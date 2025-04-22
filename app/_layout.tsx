@@ -4,7 +4,6 @@ import {
   Dimensions
 } from 'react-native';
 import { useNavigation } from 'expo-router';
-import 'react-native-reanimated';
 import { ReaderProvider } from '@epubjs-react-native/core';
 import { Colors } from '@/constants/colors';
 import BookManagementScreen from '@/app/bookManagement/index';
