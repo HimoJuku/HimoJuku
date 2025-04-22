@@ -7,25 +7,25 @@ import { useNavigation } from 'expo-router';
 import 'react-native-reanimated';
 import { ReaderProvider } from '@epubjs-react-native/core';
 import { Colors } from '@/constants/colors';
-import BookManagementScreen from '@/app/bookManagement/Index';
-import DatabaseTest from '@/app/DatabaseTest/Index';
-import BookshelfScreen from '@/app/bookShelf';
-
+import BookManagementScreen from '@/app/bookManagement/index';
+import DatabaseTest from '@/app/DatabaseTest/index';
+import BookshelfScreen from '@/app/bookShelf/index';
 import SettingsScreen from '@/app/settings/index';
 
 import {
   MD3DarkTheme,
   MD3LightTheme,
   PaperProvider,
-  Appbar
+  Appbar,
+  useTheme,
 } from 'react-native-paper';
 
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { CustomDrawerContent } from '@/components/CustomDrawerContent';
 import { MaterialIcons } from '@expo/vector-icons';
-import ReaderPage from './(tabs)/reader';
-import { ThemeContext, ThemePreference, ResolvedThemeType  } from '../context/ThemeContext';
+import ReaderPage from '@/app/(tabs)/Reader';
+import { ThemeContext, ThemePreference, ResolvedThemeType  } from '../constants/settings';
 
 
 /// Define the type for the drawer navigator's parameter list
@@ -46,12 +46,13 @@ const drawerWidth =
  * Header component for the drawer navigator.
  */
 function Header() {
+  const theme = useTheme();
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
   return (
     <Appbar.Header mode='center-aligned'>
       <Appbar.Action icon="menu" onPress={() => navigation.openDrawer()} />
       <Appbar.Action icon= ""/>
-      <Appbar.Content title="Himojuku"/>
+      <Appbar.Content title="Himojuku" color={theme.colors.primary}/>
       <Appbar.Action icon="magnify" onPress={() => {}} />
       <Appbar.Action icon="dots-vertical" onPress={() => {}} />
     </Appbar.Header>

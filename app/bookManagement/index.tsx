@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 
 
 import ConvertToEpub from '@/app/txt2epub/converter';
-import { TxtBook } from '@/app//txt2epub/type';
+import { TxtBook } from '@/constants/txtBooks';
 
 import { stringMd5 } from 'react-native-quick-md5';
 import { ParseAndSaveEpub } from './_epubParser';
@@ -42,6 +42,7 @@ export default function BookManagementScreen() {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const pickedFile = result.assets[0];
         const { name, uri } = pickedFile;
+        console.log('directory:', Paths.cache);
         // Create books directory if it doesn't exist
         const booksDir = new Directory(Paths.document, 'books');
         if (!booksDir.exists) {

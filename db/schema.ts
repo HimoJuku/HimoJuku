@@ -6,17 +6,22 @@ export const mySchema = appSchema({
   version: schemaVersion,
   tables: [
     tableSchema({
-      name: 'books', 
+      name: 'books',
       columns: [
-        { name: 'title', type: 'string' }, 
+        { name: 'title', type: 'string' },
         { name: 'author', type: 'string', isOptional: true },
-        { name: 'filePath', type: 'string'},   
+        { name: 'filePath', type: 'string'},
         { name: 'coverUrl', type: 'string', isOptional: true },
         { name: 'description', type: 'string', isOptional: true },
-        { name: 'importedAt', type:'number'}, 
-        { name: 'lastReadPosition', type:'string', isOptional: true}, 
+        { name: 'importedAt', type:'number'},
+        { name: 'lastReadPosition', type:'string', isOptional: true},
       ],
     }),
-    
+    tableSchema({
+      name: 'settings',
+      columns: [
+        { name: 'ThemePreference', type: 'string' }
+      ],
+    }),
   ],
 });

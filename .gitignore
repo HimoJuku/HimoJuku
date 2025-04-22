@@ -29,6 +29,9 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# android
+/android
+
 # local env files
 .env*.local
 
@@ -39,3 +42,4 @@ app-example
 android
 .idea
 package-lock.json
+pnpm-lock.yaml

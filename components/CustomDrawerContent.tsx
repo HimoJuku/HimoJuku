@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, useTheme } from 'react-native-paper';
 import {
+  SafeAreaView,
   View,
   Image,
   StyleSheet,
@@ -39,9 +40,14 @@ const styles = StyleSheet.create({
     aspectRatio: 10/15,
     padding : 0,
     margin : 0,
+    marginBottom: 10,
+    resizeMode: 'cover',
   },
   headerImage: {
-    flex : 1,
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    marginBottom: 10,
     resizeMode: 'cover',
   },
 });

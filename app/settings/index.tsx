@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
+import React, { useContext,useEffect } from 'react';
 import { StyleSheet, ScrollView } from 'react-native';
-import { 
+import {
   Button,
   Menu,
   Text,
@@ -9,7 +9,10 @@ import {
   List,
   Surface
 } from 'react-native-paper';
-import { ThemeContext, ThemePreference } from '../../context/ThemeContext';
+import { ThemeContext, ThemePreference } from '@/constants/settings';
+
+import { database } from '@/db';
+import Settings from '@/db/models/settings';
 
 const SettingsScreen = () => {
   const { themePreference, setThemePreference } = useContext(ThemeContext);
@@ -18,14 +21,30 @@ const SettingsScreen = () => {
   const [languageMenuVisible, setLanguageMenuVisible] = React.useState(false);
   const [selectedLanguage, setSelectedLanguage] = React.useState('中文');
 
-  // 主题选项处理
+  /**
+   * Subscribe to settings changes
+   */
+  useEffect(() => {
+    const sub = database.get<Settings>('settings').query().observe().subscribe((settings) => {
+      settings.forEach((setting) => {
+        const themePreference = setting.ThemePreference as ThemePreference;
+        // Update the theme preference in the context
+        setThemePreference(themePreference);
+      });
+    });
+    return () => sub.unsubscribe();
+  }, [setThemePreference]); // Add dependency
+
   const themes = ['Light Mode', 'Dark Mode', 'Follow System'];
   const languages = ['中文', 'English'];
-  const THEME_OPTIONS = [
-    { label: 'Light Mode', value: 'light' },
-    { label: 'Dark Mode', value: 'dark' },
-    { label: 'Follow System', value: 'system' },
-  ] as const;
+
+  /**
+   * Get the theme preference value based on the label
+   * @param label - The label of the theme
+   * @returns {ThemePreference} - The theme preference value
+   * @description This function returns the theme preference value based on the label.
+   * @example getPreferenceValue('Light Mode')
+   */
   const getPreferenceValue = (label: string): ThemePreference => {
     switch (label) {
       case 'Light Mode': return 'light';
@@ -35,6 +54,12 @@ const SettingsScreen = () => {
     }
   };
 
+  /**
+   * Get the current theme label based on the theme preference
+   * @returns {string} - The label of the current theme
+   * @description This function returns the label of the current theme based on the theme preference.
+   * @example getCurrentThemeLabel()
+   */
   const getCurrentThemeLabel = (): string => {
     switch (themePreference) {
       case 'light': return 'Light Mode';
@@ -44,10 +69,39 @@ const SettingsScreen = () => {
     }
   };
 
+  /**
+   * * Select a theme from the menu
+   * @param themeLabel - The label of the selected theme
+   * @description This function updates the theme preference in the context and saves it to the database.
+   * It also closes the theme menu after selection.
+   * @example selectTheme('Light Mode')
+   */
   const selectTheme = (themeLabel: string) => {
-    setThemePreference(getPreferenceValue(themeLabel));
+    const newTheme = getPreferenceValue(themeLabel);
+    setThemePreference(newTheme);
+    // Save to database
+    database.get<Settings>('settings').query().fetch()
+      .then(results => {
+        if (results.length > 0) {
+          const settingsRecord = results[0];
+          return database.write(async () => {
+            await settingsRecord.update(setting => {
+              setting.ThemePreference = newTheme;
+            });
+          });
+        } else {
+          // Create settings if none exist
+          return database.write(async () => {
+            await database.get<Settings>('settings').create(setting => {
+              setting.ThemePreference = newTheme;
+            });
+          });
+        }
+      })
+      .catch(error => console.error('Failed to save theme preference:', error));
     setThemeMenuVisible(false);
-  };
+  }
+
 
   const selectLanguage = (language: string) => {
     setSelectedLanguage(language);
@@ -72,7 +126,7 @@ const SettingsScreen = () => {
           <List.Item
             title="Theme"
             description="Select app theme"
-            right={({ color }) => (
+            right={() => (
               <Menu
                 visible={themeMenuVisible}
                 onDismiss={() => setThemeMenuVisible(false)}
@@ -104,7 +158,7 @@ const SettingsScreen = () => {
           <List.Item
             title="App Language"
             description="Select display language"
-            right={({ color }) => (
+            right={() => (
               <Menu
                 visible={languageMenuVisible}
                 onDismiss={() => setLanguageMenuVisible(false)}
