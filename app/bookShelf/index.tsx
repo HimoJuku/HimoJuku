@@ -24,7 +24,6 @@ import { database } from '@/db';
 import Book from '@/db/models/books';
 import * as Sort from '@/app/bookShelf/sort';
 import * as Shelf from '@/components/ShelfItem';
-
 type DrawerParamList = {
   bookShelf: undefined;
   bookManagement: undefined;
@@ -56,19 +55,28 @@ type DrawerParamList = {
 export default function BookshelfScreen() {
   const [books, setBooks] = useState<Book[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  //default sort method
+  const [sortMethod, setSortMethod] = useState<Sort.SortMethod>('title');
+  const [sortDesc, setSortDesc] = useState<Sort.SortDesc>(false);
   const theme = useTheme();
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
 
   /** 实时订阅 Book 表 */
   useEffect(() => {
-    const sub = database.get<Book>('books').query().observe().subscribe(setBooks);
+    const sub = database.get<Book>('books').query().observe()
+      .subscribe((fresh) => {
+        const sorted = Sort.sortBooks(fresh, sortMethod,sortDesc);
+        setBooks(sorted);
+      });
     return () => sub.unsubscribe();
   }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
     const fresh = await database.get<Book>('books').query().fetch();
-    setBooks(fresh);
+    const sorted = Sort.sortBooks(fresh, sortMethod,sortDesc);
+    console.log('refreshed');
+    setBooks(sorted);
     setRefreshing(false);
     console.log(books.map((b) => b.id));
   };
@@ -81,16 +89,6 @@ export default function BookshelfScreen() {
   //Waiting for more detailed changes by @karl@xiaohuo
   const styles = StyleSheet.create({
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginBottom: '10%'},
-    /*
-    // 3 row cards
-    card: {
-      width: '30%',
-      marginHorizontal: '1.66%',
-      marginBottom: 12,
-      alignItems: 'center',
-    },
-    */
-    // 1 row cards
     card: {
       alignItems: 'center',
       flexDirection: 'row',
@@ -101,9 +99,23 @@ export default function BookshelfScreen() {
       borderRadius: 4,
       backgroundColor: '#CCC',
     },
-    title: { fontSize: 12, fontWeight: 'bold', marginTop: 4, textAlign: 'center' },
+    title: { textAlign: 'left', textAlignVertical: 'top'},
     author: {fontSize: 10, color: theme.colors.outline, marginTop: 2},
   });
+
+  if (books.length === 0) {
+    return(
+      <Surface 
+        style={{ flex: 1, backgroundColor: theme.colors.surface }} elevation={0}
+      >
+        <View style={styles.center}>
+          <Text style={{ color: theme.colors.onSurface }}>
+            Empty Shelf
+          </Text>
+        </View>
+      </Surface>
+    )
+  }
 
   return (
     <Surface 
@@ -112,32 +124,74 @@ export default function BookshelfScreen() {
       <View
         style={{
           alignItems: 'flex-start',
+          justifyContent: 'flex-start',
+          marginStart: 15,
+          marginEnd: 15,
+          marginBottom: 2,
         }}
       >
         <Button
           mode="outlined"
-          onPress={()=>console.log('Hi')}
+          onPress={()=>{
+            setSortDesc(!sortDesc);
+            console.log(sortDesc);
+          }}
         >
-          Press me
+          {sortDesc? 'up':'down'}
         </Button>
       </View>
+      <FlatList
+        data={books}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        renderItem={({ item }) => (
+          <Card
+            elevation={0}
+            onPress={() => openReader(item.filePath)}
+            >
+            <Card.Title
+              style= {{
+                flexDirection: 'row',
+                padding: 10
+              }}
+              title={
+                item.title
+                ? item.title
+                : "Undefined Title"
+              }
+              titleNumberOfLines={2}
+              titleStyle={styles.title}
+              subtitle= {
+                item.author
+                ? item.author
+                : "Unknown Author"
+              }
+              left={(props) => (
+                <Image
+                  style={{
+                    height: props.size,
+                    borderRadius: 0,
+                    flex: 1,
+                    width: '100%',
+                  }}
+                  source={
+                    item.coverUrl
+                      ? { uri: item.coverUrl }
+                      : require('@/assets/images/cover-placeholder.png') // 占位图
+                  }
+                />
+              )}
+              leftStyle ={{
+                aspectRatio: 0.72,
+                borderRadius: 4,
+                backgroundColor: '#CCC',
+                padding: 0,
+                width: '18%',
+              }}
+            />
+          </Card>
+        )}
+      />
 
-      if (books.length === 0) {
-        <View style={styles.center}>
-          <Text style={{ color: theme.colors.onSurface }}>
-            Empty Shelf
-          </Text>
-        </View>
-      }
-      else {
-        <FlatList
-          data={books}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-          renderItem={({ item }) => (
-            Shelf.BookItem(item)
-          )}
-        />
-      }
     </Surface>
   );
 }

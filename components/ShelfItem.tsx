@@ -1,35 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import { 
-    View, 
-    FlatList, 
-    RefreshControl, 
-    StyleSheet, 
-    TouchableOpacity, 
     Image, 
-    Dimensions
   } from 'react-native';
   import { 
-    Surface, 
-    Text, 
-    useTheme,
+    Menu,
     Card,
     Button,
-    List,
-    Avatar
+    Drawer,
   } from 'react-native-paper';
-  import { useNavigation } from '@react-navigation/native';
-  import { DrawerNavigationProp } from '@react-navigation/drawer';
-  
-  import { database } from '@/db';
+
   import Book from '@/db/models/books';
   import * as sort from '@/app/bookShelf/sort';
-  import CardTitle from 'react-native-paper/lib/typescript/components/Card/CardTitle';
-  
-export function BookItem(item: Book) {
+const [currentSort, setCurrentSort] = React.useState('title');
+const sortMenu = ()=>{
+  const [visible, setVisible] = React.useState(false);
+  const openMenu = () => setVisible(true);
+  const closeMenu = () => setVisible(false);
+  return(
+    <Menu
+      visible={visible}
+      onDismiss={closeMenu}
+      anchor={<Button onPress={openMenu}>Show menu</Button>}
+    >
+      <Menu.Item onPress={() => {}} title="Item 1" />
+      <Menu.Item onPress={() => {}} title="Item 2" />
+      <Menu.Item onPress={() => {}} title="Item 3" />
+    </Menu>
+  );
+}
+export function SortButton(
+  style?: any,
+  ){
+  return(
+    <Button
+      mode="outlined"
+      onPress={()=>{
+      }}
+    >
+      Press me
+    </Button>
+  );
+}
+export function BookItem(item: Book, somehook: any) {
   return (
     <Card
     elevation={0}
-    onPress={() => openReader(item.filePath)}
+    onPress={() => somehook(item.filePath)}
     >
     <Card.Title
       style= {{

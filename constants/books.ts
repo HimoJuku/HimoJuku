@@ -3,7 +3,7 @@
  * It includes the Book interface, which defines the structure of a book object, and the DrawerParamList type,
  * which defines the navigation parameters for the drawer navigation.
  */
-export interface Book {
+export type book = {
   bookId: string
   title: string;
   author?: string;
