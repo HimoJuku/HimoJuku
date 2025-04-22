@@ -1,8 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { database } from '../../db';
-import Settings from '../../db/models/settings';
+import { database } from '@/db';
+import Settings from '@/db/models/settings';
 import { Button } from 'react-native-paper';
 import { ThemePreference } from '@/constants/settings';
 

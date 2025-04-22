@@ -1,28 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  FlatList, 
-  RefreshControl, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Image, 
-  Dimensions
+import {
+  View,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Image
 } from 'react-native';
-import { 
-  Surface, 
-  Text, 
+import {
+  Surface,
+  Text,
   useTheme,
   Card,
-  Button,
-  List,
-  Avatar
+  Button
 } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
-import { DrawerNavigationProp } from '@react-navigation/drawer';
+import { useRouter } from 'expo-router';
 
 import { database } from '@/db';
 import Book from '@/db/models/books';
-import * as Sort from '@/app/bookShelf/sort';
+import * as Sort from '@/functions/sort';
 import * as Shelf from '@/components/ShelfItem';
 type DrawerParamList = {
   bookShelf: undefined;
@@ -42,7 +37,7 @@ type DrawerParamList = {
  *
  * DONE：
  *  1.自动从数据库读取（或下拉刷新）最新书籍信息，用简易faltlist显示封面、作者等信息
- * 
+ *
  * TODO：
  *  1. 完成详细书架页面UI实现
  *  2. 加入分页等功能
@@ -59,7 +54,7 @@ export default function BookshelfScreen() {
   const [sortMethod, setSortMethod] = useState<Sort.SortMethod>('title');
   const [sortDesc, setSortDesc] = useState<Sort.SortDesc>(false);
   const theme = useTheme();
-  const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
+  const router = useRouter();
 
   /** 实时订阅 Book 表 */
   useEffect(() => {
@@ -83,10 +78,17 @@ export default function BookshelfScreen() {
 
   //Open reader method
   const openReader = (path: string) => {
-    navigation.navigate('reader', { path });
+    router.push(
+      {
+        pathname: '/reader',
+        params: {
+          path: path
+        }
+      }
+    );
   };
 
-  //Waiting for more detailed changes by @karl@xiaohuo
+
   const styles = StyleSheet.create({
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginBottom: '10%'},
     card: {
@@ -104,8 +106,8 @@ export default function BookshelfScreen() {
   });
 
   if (books.length === 0) {
-    return(
-      <Surface 
+    return (
+      <Surface
         style={{ flex: 1, backgroundColor: theme.colors.surface }} elevation={0}
       >
         <View style={styles.center}>
@@ -118,7 +120,7 @@ export default function BookshelfScreen() {
   }
 
   return (
-    <Surface 
+    <Surface
       style={{ flex: 1, backgroundColor: theme.colors.surface }} elevation={0}
     >
       <View
@@ -176,7 +178,7 @@ export default function BookshelfScreen() {
                   source={
                     item.coverUrl
                       ? { uri: item.coverUrl }
-                      : require('@/assets/images/cover-placeholder.png') // 占位图
+                      : require('@/assets/images/cover-placeholder.png')
                   }
                 />
               )}

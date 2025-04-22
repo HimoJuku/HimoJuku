@@ -1,7 +1,6 @@
 import React from 'react';
-import { Text, useTheme } from 'react-native-paper';
+import { useTheme } from 'react-native-paper';
 import {
-  SafeAreaView,
   View,
   Image,
   StyleSheet,

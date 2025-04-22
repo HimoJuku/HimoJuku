@@ -1,4 +1,4 @@
-import {TxtBook,TxtBookWithCover, TxtBookWithAuthor, TxtBookFull,Chapter} from '../../constants/txtBooks';
+import {TxtBook,TxtBookWithCover, TxtBookWithAuthor, TxtBookFull,Chapter} from '@/constants/txtBooks';
 import EpubBuilder, { EpubSettings } from '@kaze-desu/react-native-epub-creator';
 
 /**
