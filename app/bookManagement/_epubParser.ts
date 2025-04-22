@@ -2,7 +2,7 @@ import JSZip from 'jszip';
 import { XMLParser } from 'fast-xml-parser';
 import * as FileSystem from 'expo-file-system';
 import { database } from '@/db';
-import Book from '@/db/Book';
+import Book from '@/db/models/books';
 
 /**
  * ParseAndSaveEpub

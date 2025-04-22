@@ -7,11 +7,9 @@ Currently, the project is still in the developing stage.
 ## Get started
 Install dependencies
 ```bash
-npm install
+pnpm install
 ```
 ## Start the app
 ```bash
-npx expo start
+pnpm exec expo run:android
 ```
-
-## Install

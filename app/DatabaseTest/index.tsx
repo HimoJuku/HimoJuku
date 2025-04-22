@@ -1,32 +1,76 @@
-//数据库测试文件，现在独立写成一个页面，用于测试数据库功能和存储是否正常。
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { database } from '../../db'; 
-import Book from '../../db/book';  
+import { database } from '../../db';
+import Settings from '../../db/models/settings';
+import { Button } from 'react-native-paper';
+import { ThemePreference } from '@/constants/settings';
 
-export default function DatabaseTest() {
+export default function SettingsDatabaseTest() {
   const [loading, setLoading] = useState(true);
-  const [books, setBooks] = useState<Book[]>([]);
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBooks = async () => {
+  // 从数据库获取设置
+  const fetchSettings = async () => {
     try {
       setLoading(true);
-      const fetchedBooks = await database.collections.get<Book>('books').query().fetch();
-      console.log('Fetched books:', fetchedBooks);
-      setBooks(fetchedBooks);
+      const settingsRecords = await database.collections.get<Settings>('settings').query().fetch();
+      console.log('获取到的设置:', settingsRecords);
+      setSettings(settingsRecords.length > 0 ? settingsRecords[0] : null);
     } catch (err: any) {
       setError(err.message || String(err));
-      console.error('Database test error:', err);
+      console.error('设置数据库测试错误:', err);
     } finally {
       setLoading(false);
     }
   };
 
+  // 创建默认设置
+  const createDefaultSettings = async () => {
+    try {
+      setLoading(true);
+      await database.write(async () => {
+        const settingsCollection = database.collections.get<Settings>('settings');
+        const newSettings = await settingsCollection.create(settings => {
+          settings.ThemePreference = 'system';
+        });
+        setSettings(newSettings);
+      });
+      console.log('创建默认设置成功');
+    } catch (err: any) {
+      setError(err.message || String(err));
+      console.error('创建设置错误:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 更新主题偏好
+  const updateThemePreference = async (newTheme: ThemePreference) => {
+    if (!settings) return;
+    
+    try {
+      setLoading(true);
+      await database.write(async () => {
+        await settings.update(record => {
+          record.ThemePreference = newTheme;
+        });
+      });
+      console.log('主题偏好更新为:', newTheme);
+      await fetchSettings(); // 更新后刷新数据
+    } catch (err: any) {
+      setError(err.message || String(err));
+      console.error('更新主题偏好错误:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 页面聚焦时加载数据
   useFocusEffect(
     useCallback(() => {
-      fetchBooks();
+      fetchSettings();
     }, [])
   );
 
@@ -34,7 +78,7 @@ export default function DatabaseTest() {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" />
-        <Text style={styles.message}>正在加载数据库数据...</Text>
+        <Text style={styles.message}>正在加载设置数据...</Text>
       </View>
     );
   }
@@ -42,35 +86,64 @@ export default function DatabaseTest() {
   if (error) {
     return (
       <View style={styles.container}>
-        <Text style={styles.error}>数据库测试出错: {error}</Text>
+        <Text style={styles.error}>设置数据库测试出错: {error}</Text>
+        <Button mode="contained" onPress={fetchSettings} style={styles.button}>
+          重试
+        </Button>
       </View>
     );
   }
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>数据库测试 - 书籍记录</Text>
-      {books.length === 0 ? (
-        <Text style={styles.emptyText}>暂无书籍记录</Text>
+      <Text style={styles.title}>设置数据库测试</Text>
+      
+      {!settings ? (
+        <View>
+          <Text style={styles.emptyText}>未找到设置记录</Text>
+          <Button mode="contained" onPress={createDefaultSettings} style={styles.button}>
+            创建默认设置
+          </Button>
+        </View>
       ) : (
-        books.map((book, index) => (
-          <View key={index} style={styles.bookItem}>
-            <Text style={styles.bookTitle}>书名: {book.title}</Text>
-            <Text>作者: {book.author || '-'}</Text>
-            <Text>文件路径: {book.filePath}</Text>
-            <Text>简介: {book.description || '-'}</Text>
-            <Text>导入时间: {new Date(book.importedAt).toLocaleString()}</Text>
-            <Text>上次阅读: {book.lastReadPosition || '-'}</Text>
-            {book.coverUrl ? (
-              <Image
-                source={{ uri: book.coverUrl }}
-                style={styles.coverImage}
-              />
-            ) : (
-              <Text>封面: -</Text>
-            )}
+        <View style={styles.settingsContainer}>
+          <Text style={styles.settingsItem}>
+            当前主题设置: <Text style={styles.valueText}>{settings.ThemePreference}</Text>
+          </Text>
+          
+          <Text style={styles.sectionTitle}>更新主题设置:</Text>
+          <View style={styles.buttonContainer}>
+            <Button 
+              mode="outlined" 
+              onPress={() => updateThemePreference('light')}
+              style={[styles.themeButton, settings.ThemePreference === 'light' && styles.activeButton]}
+            >
+              浅色模式
+            </Button>
+            <Button 
+              mode="outlined" 
+              onPress={() => updateThemePreference('dark')}
+              style={[styles.themeButton, settings.ThemePreference === 'dark' && styles.activeButton]}
+            >
+              深色模式
+            </Button>
+            <Button 
+              mode="outlined" 
+              onPress={() => updateThemePreference('system')}
+              style={[styles.themeButton, settings.ThemePreference === 'system' && styles.activeButton]}
+            >
+              跟随系统
+            </Button>
           </View>
-        ))
+          
+          <Button 
+            mode="contained" 
+            onPress={fetchSettings}
+            style={styles.refreshButton}
+          >
+            刷新设置
+          </Button>
+        </View>
       )}
     </ScrollView>
   );
@@ -93,27 +166,50 @@ const styles = StyleSheet.create({
   error: {
     color: 'red',
     fontSize: 16,
+    marginBottom: 16,
   },
   emptyText: {
     fontSize: 16,
     fontStyle: 'italic',
+    marginBottom: 16,
   },
-  bookItem: {
+  settingsContainer: {
     width: '100%',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    marginBottom: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
   },
-  bookTitle: {
+  settingsItem: {
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  valueText: {
+    fontWeight: 'bold',
+  },
+  sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginTop: 16,
+    marginBottom: 8,
   },
-  coverImage: {
-    width: 100,
-    height: 140,
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  themeButton: {
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  activeButton: {
+    backgroundColor: '#e6f7ff',
+    borderColor: '#1890ff',
+  },
+  button: {
     marginTop: 8,
-    resizeMode: 'cover',
   },
+  refreshButton: {
+    marginTop: 16,
+  }
 });
