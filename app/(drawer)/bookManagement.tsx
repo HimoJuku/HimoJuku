@@ -136,22 +136,23 @@ export default function BookManagementScreen() {
         {books.length === 0 ? (
           <Text style={{ color: colors.onBackground }}>暂无书籍</Text>
         ) : (
-          books.map((book, index) => (
-            <View key={index} style={styles.bookItem}>
-              <Text style={[styles.bookName, { color: colors.onBackground }]}>
-                {book.name}
-              </Text>
-              <Text style={{ color: colors.onSurfaceVariant }}>{book.uri}</Text>
-              <Button
-                mode="contained"
-                onPress={() => handleOpenReader(book.uri)}
+            books.map((book, index) => (
+              <View key={index} style={styles.bookItem}>
+                <Text style={[styles.bookName, { color: colors.onBackground }]}>
+                  {book.name}
+                </Text>
+                <Text style={{ color: colors.onSurfaceVariant }}>{book.uri}</Text>
+                <Button
+                  mode="contained"
+                  onPress={() => handleOpenReader(book.uri)}
 
-                style={{ marginTop: 8 }}
-              >
-                阅读此书
-              </Button>
-            </View>
-          ))
+                  style={{ marginTop: 8 }}
+                >
+                  阅读此书
+                </Button>
+              </View>
+            )
+          )
         )}
       </View>
     </View>

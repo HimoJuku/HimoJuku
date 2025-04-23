@@ -19,6 +19,7 @@ import { database } from '@/db';
 import Book from '@/db/models/books';
 import * as Sort from '@/functions/sort';
 import * as Shelf from '@/components/ShelfItem';
+import { on } from '@nozbe/watermelondb/QueryDescription';
 type DrawerParamList = {
   bookShelf: undefined;
   bookManagement: undefined;
@@ -27,32 +28,13 @@ type DrawerParamList = {
   databaseTest: undefined;
 };
 
-/**
- * Bookshelf
- * ----------
- * 作用：展示数据库中已导入的书籍列表。
- *  - 数据源：WatermelonDB => Book 表
- *  - 实时刷新：使用 observe/subscribe 或手动下拉刷新
- *  - 点击项后：导航到 reader 并携带 filePath
- *
- * DONE：
- *  1.自动从数据库读取（或下拉刷新）最新书籍信息，用简易faltlist显示封面、作者等信息
- *
- * TODO：
- *  1. 完成详细书架页面UI实现
- *  2. 加入分页等功能
- *  3. 联合右上角的排序、搜索等功能实现
- *  4. 将 FlatList 条目替换成真正的书架卡片 UI（封面 + 书名 + 进度等。--初步完成 也许需要修改样式
- *  5. 在点击封面时启用reader读取存储路径下书籍文件
- *  6. 长按弹出“删除/详情”等操作（optional）。
- */
-
 export default function BookshelfScreen() {
-  const [books, setBooks] = useState<Book[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
+  const [books, setBooks] = React.useState<Book[]>([]);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [reRenderBooks, setReRenderBooks] = useState(false);
   //default sort method
-  const [sortMethod, setSortMethod] = useState<Sort.SortMethod>('title');
-  const [sortDesc, setSortDesc] = useState<Sort.SortDesc>(false);
+  const [sortMethod, setSortMethod] = React.useState<Sort.SortMethod>('title');
+  const [sortDesc, setSortDesc] = React.useState<Sort.SortDesc>(false);
   const theme = useTheme();
   const router = useRouter();
 
@@ -66,6 +48,8 @@ export default function BookshelfScreen() {
     return () => sub.unsubscribe();
   }, []);
 
+
+
   const onRefresh = async () => {
     setRefreshing(true);
     const fresh = await database.get<Book>('books').query().fetch();
@@ -73,7 +57,8 @@ export default function BookshelfScreen() {
     console.log('refreshed');
     setBooks(sorted);
     setRefreshing(false);
-    console.log(books.map((b) => b.id));
+    setReRenderBooks(false);
+    console.log('onRefresh',books.map((b) => b.id));
   };
 
   //Open reader method
@@ -136,7 +121,10 @@ export default function BookshelfScreen() {
           mode="outlined"
           onPress={()=>{
             setSortDesc(!sortDesc);
-            console.log(sortDesc);
+            console.log(sortDesc,'\n');
+            Sort.sortBooks(books, sortMethod,sortDesc);
+            setReRenderBooks(true);
+            console.log('Buttom',books.map((b) => b.id));
           }}
         >
           {sortDesc? 'up':'down'}
@@ -146,6 +134,7 @@ export default function BookshelfScreen() {
         data={books}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         renderItem={({ item }) => (
+          console.log('render',item.id),
           <Card
             elevation={0}
             onPress={() => openReader(item.filePath)}
