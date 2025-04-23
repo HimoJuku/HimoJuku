@@ -57,7 +57,7 @@ export default function RootLayout() {
               }}
               >
               <Stack.Screen
-                name="reader"
+                name="reader/index"
                 options={{
                   title: "Reader",
                   animation: 'fade',

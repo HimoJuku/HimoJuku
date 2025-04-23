@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  Image,
   ScrollView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
