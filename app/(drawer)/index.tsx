@@ -14,7 +14,7 @@ import {
   Button
 } from 'react-native-paper';
 import { useRouter } from 'expo-router';
-
+import { MaterialIcons } from '@expo/vector-icons';
 import { database } from '@/db';
 import Book from '@/db/models/books';
 import * as Sort from '@/functions/sort';
@@ -31,34 +31,41 @@ type DrawerParamList = {
 export default function BookshelfScreen() {
   const [books, setBooks] = React.useState<Book[]>([]);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [reRenderBooks, setReRenderBooks] = useState(false);
   //default sort method
-  const [sortMethod, setSortMethod] = React.useState<Sort.SortMethod>('title');
+  const [sortMethod, setSortMethod] = React.useState<Sort.SortMethod>('author');
   const [sortDesc, setSortDesc] = React.useState<Sort.SortDesc>(false);
   const theme = useTheme();
   const router = useRouter();
 
-  /** 实时订阅 Book 表 */
+  /** Subscribe to Book changes */
   useEffect(() => {
     const sub = database.get<Book>('books').query().observe()
       .subscribe((fresh) => {
-        const sorted = Sort.sortBooks(fresh, sortMethod,sortDesc);
-        setBooks(sorted);
+        //const sorted = Sort.sortBooks(fresh, sortMethod,sortDesc);
+        setBooks(fresh);
       });
     return () => sub.unsubscribe();
   }, []);
 
-
+  const toggleDesc = () => {
+    console.log('[toggleDesc] Current Method: ', sortDesc ? 'true' : 'false');
+    console.log('[toggleDesc] set to Method: ', sortDesc ? 'false' : 'true');
+    setSortDesc(!sortDesc);
+    console.log('[toggleDesc] Current Method: ', sortDesc ? 'true' : 'false');
+  }
+  const onSort = () => {
+    console.log('[onSort]','command:',[sortMethod,sortDesc])
+    const sorted = Sort.sortBooks(books, sortMethod,sortDesc);
+    setBooks(sorted);
+    console.log('[onSort] Sorted. Rresult: ', books.map((b) => b.title));
+  }
 
   const onRefresh = async () => {
     setRefreshing(true);
     const fresh = await database.get<Book>('books').query().fetch();
-    const sorted = Sort.sortBooks(fresh, sortMethod,sortDesc);
-    console.log('refreshed');
-    setBooks(sorted);
+    console.log('[onRefresh] Data received: ',fresh.map((b) => b.id));
+    onSort();
     setRefreshing(false);
-    setReRenderBooks(false);
-    console.log('onRefresh',books.map((b) => b.id));
   };
 
   //Open reader method
@@ -110,6 +117,7 @@ export default function BookshelfScreen() {
     >
       <View
         style={{
+          flexDirection: 'row',
           alignItems: 'flex-start',
           justifyContent: 'flex-start',
           marginStart: 15,
@@ -118,23 +126,59 @@ export default function BookshelfScreen() {
         }}
       >
         <Button
-          mode="outlined"
+          mode="text"
+          contentStyle={{
+            flexDirection: 'row-reverse',
+          }}
+          icon = {(props)=>(
+            <MaterialIcons 
+            name= {
+              sortDesc
+              ? 'check' 
+              : 'close'
+            }
+            {...props}
+            />)
+          }
           onPress={()=>{
-            setSortDesc(!sortDesc);
-            console.log(sortDesc,'\n');
-            Sort.sortBooks(books, sortMethod,sortDesc);
-            setReRenderBooks(true);
-            console.log('Buttom',books.map((b) => b.id));
+            setSortDesc(true);
+            console.log('[Buttom] Current sortDesc',sortDesc?'true':'false');
+            onSort();
+            console.log('[Buttom]',books.map((b) => b.id));
           }}
         >
-          {sortDesc? 'up':'down'}
+          {sortDesc?'T':'F'}
+        </Button>
+        <Button
+          mode="text"
+          contentStyle={{
+            flexDirection: 'row-reverse',
+          }}
+          icon = {(props)=>(
+            <MaterialIcons 
+            name= {
+              sortDesc
+              ? 'check' 
+              : 'close'
+            }
+            {...props}
+            />)
+          }
+          onPress={()=>{
+            setSortDesc(false);
+            console.log('[Buttom] Current sortDesc',sortDesc?'true':'false');
+            onSort();
+            console.log('[Buttom]',books.map((b) => b.id));
+          }}
+        >
+          {sortDesc?'T':'F'}
         </Button>
       </View>
       <FlatList
         data={books}
+        keyExtractor={(item) => item.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         renderItem={({ item }) => (
-          console.log('render',item.id),
           <Card
             elevation={0}
             onPress={() => openReader(item.filePath)}

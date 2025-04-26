@@ -14,16 +14,12 @@ export type SortDesc = boolean;
  * @example sortByTitle(books)
  */
 export function sortByTitle(books:Book[], desc:SortDesc): Book[] {
-    console.log('[sortBooks] before',books.map((b) => b.id));
     var arrCopy = [...books];
-    console.log('sortByTitle', desc);
     if (desc === true) {
         arrCopy = books.sort((a, b) => a.title.localeCompare(b.title)).reverse();
-        console.log('[sortBooks] after',arrCopy.map((b) => b.id));
         return arrCopy;
     } else{
         arrCopy = books.sort((a, b) => a.title.localeCompare(b.title));
-        console.log('[sortBooks] after',arrCopy.map((b) => b.id));
         return arrCopy;
     }
 }
