@@ -11,7 +11,6 @@ import {
   DrawerContentComponentProps,
 } from '@react-navigation/drawer';
 import Gradient from '@/components/Gradient';
-
 // Will become the cover of latest book
 function DrawerCover() {
   const theme = useTheme();
