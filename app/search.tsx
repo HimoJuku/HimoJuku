@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Search from '@/functions/searchBooks';
 import Book from '@/db/models/books';
 import React, { useState, useEffect } from 'react';
-import { ActivityIndicator, Text, Card, Paragraph, Chip, Button} from 'react-native-paper';
+import { ActivityIndicator, Text, Card, Chip, Button, Avatar, TouchableRipple} from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { View, StyleSheet, FlatList, RefreshControl, Image } from 'react-native';
 import { searchBy } from '@/constants/search';
@@ -58,22 +58,38 @@ export default function SearchScreen() {
             {error && <Text>{error}</Text>}
             <View style={styles.chipContainer}>
                 <View style={styles.chipRowContainer}>
-                    <Chip onPress={() => console.log('Pressed')} style={styles.chip} >
+                    <Chip onPress={() =>
+                        setSearchType({ shown: 'All' })
+                    }
+                    style={styles.chip}
+                    selected={searchType.shown === 'All'}>
                         <Text style={styles.chipText}>All</Text>
                     </Chip>
                 </View>
                 <View style={styles.chipRowContainer}>
-                    <Chip onPress={() => console.log('Pressed')} style={styles.chip}>
+                    <Chip onPress={() =>
+                        setSearchType({ shown: 'Title' })
+
+                    }
+                    style={styles.chip}
+                    selected={searchType.shown === 'Title'}
+                    >
                         <Text style={styles.chipText}>Title</Text>
                     </Chip>
                 </View>
                 <View style={styles.chipRowContainer}>
-                    <Chip onPress={() => console.log('Pressed')} style={styles.chip}>
+                    <Chip onPress={() =>
+                        setSearchType({ shown: 'Author' })
+                    }
+                    style={styles.chip}
+                    selected={searchType.shown === 'Author'}
+                    >
                         <Text style={styles.chipText}>Author</Text>
                     </Chip>
                 </View>
             </View>
-            <View style={styles.titleContainer}>
+            { (searchType.shown === 'All' || searchType.shown === 'Title') &&
+            <View style={styles.titleContainer} >
                 <Button icon="arrow-right" mode="text" onPress={() => console.log('Pressed')}contentStyle={styles.title} labelStyle={{ fontSize: 20, verticalAlign:"bottom"}} >
                     <Text variant='headlineSmall'>With Title</Text>
                 </Button>
@@ -115,22 +131,33 @@ export default function SearchScreen() {
                         />
                 </View>
             </View>
-            <View style={styles.authorContainer}>
-            <Button icon="arrow-right" mode="text" onPress={() => console.log('Pressed')}contentStyle={styles.title} labelStyle={{ fontSize: 20, verticalAlign:"bottom"}} >
-                    <Text variant='headlineSmall'>With Author</Text>
-                </Button>
-                </View>
-            <View style={styles.authorRowContainer}>
-                    <Text style={{ fontSize: 22, margin: 16 }}>Search Results for "{query}"</Text>
-                        {books.map((book) => (
-                        <Card key={book.id}>
-                            <Card.Title title={book.title} subtitle={book.author} />
-                            <Card.Content>
-                                <Paragraph>{book.description}</Paragraph>
-                            </Card.Content>
-                        </Card>
-                    ))}
-                </View>
+}
+            { (searchType.shown === 'All' || searchType.shown === 'Author') &&
+            <><View style={styles.authorContainer}>
+                    <Button icon="arrow-right" mode="text" onPress={() => console.log('Pressed')} contentStyle={styles.title} labelStyle={{ fontSize: 20, verticalAlign: "bottom" }}>
+                        <Text variant='headlineSmall'>With Author</Text>
+                    </Button>
+                </View><View style={styles.authorRowContainer}>
+                        <FlatList style={{ flexDirection: 'row', flex: 1 }}
+                            data={books}
+                            keyExtractor={(b) => b.id}
+                            refreshControl={<RefreshControl refreshing={loading} />}
+                            renderItem={({ item }) => (
+                                <Card style={styles.avatar}
+                                    elevation={0}
+                                    onPress={() => openReader(item.filePath)}
+                                >
+                                    <Avatar.Icon
+                                        size={100}
+                                        icon="account"
+                                        style={styles.avatar} />
+                                    <Text style={styles.author}>
+                                        {item.author}
+                                    </Text>
+                                </Card>
+
+                            )} />
+                    </View></>}
         </SafeAreaView>
     );
 }
@@ -186,4 +213,12 @@ const styles = StyleSheet.create({
     authorRowContainer:{
         flex: 1
     },
+    avatar:{
+        marginStart: 10,
+        marginBottom: 10,
+        alignSelf: 'center',
+    },
+    author:{
+        alignItems: 'center',
+    }
 })
