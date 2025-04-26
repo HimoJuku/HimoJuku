@@ -95,8 +95,8 @@ export default function SearchScreen() {
                 </Button>
                 <View style={styles.titleRowContainer}>
                     <FlatList style={{ flexDirection: 'row',flex: 1}}
+                    horizontal={true}
                     data={books}
-                    keyExtractor={(b,) => b.id}
                     refreshControl={<RefreshControl refreshing={loading} />}
                     renderItem={({ item }) => (
                         <Card
@@ -131,33 +131,36 @@ export default function SearchScreen() {
                         />
                 </View>
             </View>
-}
+            }
             { (searchType.shown === 'All' || searchType.shown === 'Author') &&
             <><View style={styles.authorContainer}>
                     <Button icon="arrow-right" mode="text" onPress={() => console.log('Pressed')} contentStyle={styles.title} labelStyle={{ fontSize: 20, verticalAlign: "bottom" }}>
                         <Text variant='headlineSmall'>With Author</Text>
                     </Button>
-                </View><View style={styles.authorRowContainer}>
-                        <FlatList style={{ flexDirection: 'row', flex: 1 }}
-                            data={books}
-                            keyExtractor={(b) => b.id}
-                            refreshControl={<RefreshControl refreshing={loading} />}
-                            renderItem={({ item }) => (
-                                <Card style={styles.avatar}
-                                    elevation={0}
-                                    onPress={() => openReader(item.filePath)}
-                                >
-                                    <Avatar.Icon
-                                        size={100}
-                                        icon="account"
-                                        style={styles.avatar} />
-                                    <Text style={styles.author}>
-                                        {item.author}
-                                    </Text>
-                                </Card>
-
-                            )} />
-                    </View></>}
+                </View>
+                <View style={styles.authorRowContainer}>
+                    <FlatList style={{ flexDirection: 'row', flex: 1 }}
+                        horizontal={true}
+                        data={books}
+                        keyExtractor={(b) => b.id}
+                        refreshControl={<RefreshControl refreshing={loading} />}
+                        renderItem={({ item }) => (
+                            <Card style={styles.avatar}
+                                elevation={0}
+                                onPress={() => openReader(item.filePath)}
+                            >
+                                <Avatar.Icon
+                                    size={100}
+                                    icon="account"
+                                    style={styles.avatar} />
+                                <Text style={styles.author}>
+                                    {item.author}
+                                </Text>
+                            </Card>
+                        )}
+                    />
+                </View>
+            </>}
         </SafeAreaView>
     );
 }
@@ -183,7 +186,7 @@ const styles = StyleSheet.create({
         },
     titleContainer:{
         flex: 1,
-        justifyContent: 'flex-start'
+        justifyContent: 'flex-start',
     },
     title:{
         flexDirection: 'row-reverse',
@@ -208,10 +211,10 @@ const styles = StyleSheet.create({
     },
     authorContainer:{
         flex: 0,
-        justifyContent: 'flex-start'
+        justifyContent: 'flex-start',
     },
     authorRowContainer:{
-        flex: 1
+        flex: 1,
     },
     avatar:{
         marginStart: 10,
