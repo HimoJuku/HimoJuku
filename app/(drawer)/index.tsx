@@ -19,7 +19,7 @@ import { database } from '@/db';
 import Book from '@/db/models/books';
 import * as Sort from '@/functions/sort';
 import * as Shelf from '@/components/ShelfItem';
-import { on } from '@nozbe/watermelondb/QueryDescription';
+import { desc, on } from '@nozbe/watermelondb/QueryDescription';
 type DrawerParamList = {
   bookShelf: undefined;
   bookManagement: undefined;
@@ -32,8 +32,7 @@ export default function BookshelfScreen() {
   const [books, setBooks] = React.useState<Book[]>([]);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   //default sort method
-  const [sortMethod, setSortMethod] = React.useState<Sort.SortMethod>('author');
-  const [sortDesc, setSortDesc] = React.useState<Sort.SortDesc>(false);
+  const [sortMethod, setSortMethod] = React.useState<Sort.SortMethod>({method: 'author', desc: false});
   const theme = useTheme();
   const router = useRouter();
 
@@ -41,21 +40,25 @@ export default function BookshelfScreen() {
   useEffect(() => {
     const sub = database.get<Book>('books').query().observe()
       .subscribe((fresh) => {
-        //const sorted = Sort.sortBooks(fresh, sortMethod,sortDesc);
+        //const sorted = Sort.sortBooks(fresh, sortMethod,sortMethod.desc);
         setBooks(fresh);
       });
     return () => sub.unsubscribe();
   }, []);
 
   const toggleDesc = () => {
-    console.log('[toggleDesc] Current Method: ', sortDesc ? 'true' : 'false');
-    console.log('[toggleDesc] set to Method: ', sortDesc ? 'false' : 'true');
-    setSortDesc(!sortDesc);
-    console.log('[toggleDesc] Current Method: ', sortDesc ? 'true' : 'false');
+    setSortMethod({method: sortMethod.method, desc: !sortMethod.desc});
   }
+
+  function setMethodNSort(method: Sort.sortIndex, desc: boolean) {
+    setSortMethod({method: method, desc: desc});
+    const sorted = Sort.sortBooks(books, {method: method, desc: desc});
+    setBooks(sorted);
+  }
+
   const onSort = () => {
-    console.log('[onSort]','command:',[sortMethod,sortDesc])
-    const sorted = Sort.sortBooks(books, sortMethod,sortDesc);
+    console.log('[onSort]','command:',[sortMethod,sortMethod.desc])
+    const sorted = Sort.sortBooks(books, sortMethod);
     setBooks(sorted);
     console.log('[onSort] Sorted. Rresult: ', books.map((b) => b.title));
   }
@@ -115,6 +118,7 @@ export default function BookshelfScreen() {
     <Surface
       style={{ flex: 1, backgroundColor: theme.colors.surface }} elevation={0}
     >
+      //Tool Container
       <View
         style={{
           flexDirection: 'row',
@@ -133,47 +137,21 @@ export default function BookshelfScreen() {
           icon = {(props)=>(
             <MaterialIcons 
             name= {
-              sortDesc
-              ? 'check' 
-              : 'close'
+              sortMethod.desc
+              ? "arrow-upward"
+              : 'arrow-downward'
             }
             {...props}
             />)
           }
           onPress={()=>{
-            setSortDesc(true);
-            console.log('[Buttom] Current sortDesc',sortDesc?'true':'false');
-            onSort();
-            console.log('[Buttom]',books.map((b) => b.id));
+            setMethodNSort('title', !sortMethod.desc);
           }}
         >
-          {sortDesc?'T':'F'}
-        </Button>
-        <Button
-          mode="text"
-          contentStyle={{
-            flexDirection: 'row-reverse',
-          }}
-          icon = {(props)=>(
-            <MaterialIcons 
-            name= {
-              sortDesc
-              ? 'check' 
-              : 'close'
-            }
-            {...props}
-            />)
-          }
-          onPress={()=>{
-            setSortDesc(false);
-            console.log('[Buttom] Current sortDesc',sortDesc?'true':'false');
-            onSort();
-            console.log('[Buttom]',books.map((b) => b.id));
-          }}
-        >
-          {sortDesc?'T':'F'}
+          {sortMethod.method}
         </Button>
       </View>
+      //Book Shelf
       <FlatList
         data={books}
         keyExtractor={(item) => item.id}
