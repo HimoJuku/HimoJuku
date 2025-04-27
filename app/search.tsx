@@ -1,35 +1,53 @@
-// SearchScreen.tsx
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Search from '@/functions/searchBooks';
+import Search , {SearchByAuthor, SearchByTitle} from '@/functions/searchBooks';
 import Book from '@/db/models/books';
 import React, { useState, useEffect } from 'react';
-import { ActivityIndicator, Text, Card, Chip, Button, Avatar, TouchableRipple} from 'react-native-paper';
+import { ActivityIndicator, Text, Card, Chip, Button, Avatar, useTheme } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { View, StyleSheet, FlatList, RefreshControl, Image } from 'react-native';
 import { searchBy } from '@/constants/search';
 
+/**
+ * SearchScreen
+ * This component is used to search for books in the library.
+ * The query is passed as a parameter from the navigation header.
+ */
 export default function SearchScreen() {
+    // Get the query from the search header params
     const { query } = useLocalSearchParams();
     const [books, setBooks] = useState<Book[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    // State to manage the search type (All, Title, Author)
     const [searchType, setSearchType] = useState<searchBy>({ shown: 'All' });
     const router = useRouter();
-    
+    // Execute the search function when the query changes
     useEffect(() => {
         if (query) {
             handleSearch();
         }
     }, [query]);
 
+    useEffect(() => {
+        if (searchType) {
+            handleSearch();
+        }
+    }, [searchType]);
+    /**
+     * handleSearch
+     * This function is used to search for books in the library.
+     */
     const handleSearch = async () => {
         setLoading(true);
         setError(null);
         try {
-            const result = await Search(query as string);
+            const result = searchType.shown === 'All' ? await Search(query as string)
+            : searchType.shown === 'Title' ? await SearchByTitle(query as string)
+            : await SearchByAuthor(query as string);
             if (result && result.length > 0) {
                 setBooks(result);
             } else {
+                setBooks([]);
                 setError('No results found');
             }
         } catch (err) {
@@ -55,7 +73,6 @@ export default function SearchScreen() {
     return (
         <SafeAreaView style={{ flex: 1 }}>
             {loading && <ActivityIndicator size="large" color="#0000ff" />}
-            {error && <Text>{error}</Text>}
             <View style={styles.chipContainer}>
                 <View style={styles.chipRowContainer}>
                     <Chip onPress={() =>
@@ -93,6 +110,9 @@ export default function SearchScreen() {
                 <Button icon="arrow-right" mode="text" onPress={() => console.log('Pressed')}contentStyle={styles.title} labelStyle={{ fontSize: 20, verticalAlign:"bottom"}} >
                     <Text variant='headlineSmall'>With Title</Text>
                 </Button>
+                {error ?
+                <Text style={styles.empty}>No result from "{query}" by Title</Text>
+                :
                 <View style={styles.titleRowContainer}>
                     <FlatList style={{ flexDirection: 'row',flex: 1}}
                     data={books}
@@ -102,62 +122,56 @@ export default function SearchScreen() {
                         <Card
                         elevation={0}
                         onPress={() => openReader(item.filePath)}
+                        style={styles.bookContainer}
                         >
-                        <Card.Title
-                        style= {{
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        maxWidth: 170,
-                        marginTop: 15,
-                        alignSelf: 'center',
-                        }}
-                        title={item.title}
-                        titleNumberOfLines={2}
-                        subtitle= {item.author}
-                        left={() => (
-                        <Image
-                        style={[styles.image]}
-                        source={
-                            item.coverUrl
-                                ? { uri: item.coverUrl }
-                                : require('@/assets/images/cover-placeholder.png')
-                            }
-                            />
-                        )}
-                        leftStyle ={styles.leftStyle}
-                        />
+                            <Image
+                            style={[styles.bookCover]}
+                            source={
+                                item.coverUrl
+                                    ? { uri: item.coverUrl }
+                                    : require('@/assets/images/cover-placeholder.png')
+                                }
+                                />
+                            <Text style={styles.bookTitle}>
+                            {item.title.length > 20 ? item.title.substring(0, 20) + '...' : item.title}
+                            </Text>
+                            <Text style={styles.bookSubtitle}>
+                            {item.author}
+                            </Text>
                         </Card>
+
                         )}
                         />
-                </View>
+                </View>}
             </View>
-}
+            }
             { (searchType.shown === 'All' || searchType.shown === 'Author') &&
-            <><View style={styles.authorContainer}>
-                    <Button icon="arrow-right" mode="text" onPress={() => console.log('Pressed')} contentStyle={styles.title} labelStyle={{ fontSize: 20, verticalAlign: "bottom" }}>
-                        <Text variant='headlineSmall'>With Author</Text>
-                    </Button>
-                </View><View style={styles.authorRowContainer}>
-                        <FlatList style={{ flexDirection: 'row', flex: 1 }}
-                            data={books}
-                            keyExtractor={(b) => b.id}
-                            refreshControl={<RefreshControl refreshing={loading} />}
-                            renderItem={({ item }) => (
-                                <Card style={styles.avatar}
-                                    elevation={0}
-                                    onPress={() => openReader(item.filePath)}
-                                >
-                                    <Avatar.Icon
-                                        size={100}
-                                        icon="account"
-                                        style={styles.avatar} />
-                                    <Text style={styles.author}>
-                                        {item.author}
-                                    </Text>
-                                </Card>
-
-                            )} />
-                    </View></>}
+            <View style={styles.authorContainer}>
+                <Button icon="arrow-right" mode="text" onPress={() => console.log('Pressed')} contentStyle={styles.title} labelStyle={{ fontSize: 20, verticalAlign: "bottom" }}>
+                    <Text variant='headlineSmall'>With Author</Text>
+                </Button>
+                {error ?
+                <Text style={styles.empty}>No result from "{query}" by Author</Text>
+                :
+                <FlatList style={styles.authorRowContainer}
+                    data={books}
+                    keyExtractor={(b) => b.id}
+                    refreshControl={<RefreshControl refreshing={loading} />}
+                    renderItem={({ item }) => (
+                        <Card style={styles.avatar}
+                            elevation={0}
+                            onPress={() => openReader(item.filePath)}>
+                            <Avatar.Icon
+                                size={100}
+                                icon="account"
+                                style={styles.avatar} />
+                            <Text style={styles.author}>
+                                {item.author}
+                            </Text>
+                        </Card>
+                    )}/>}
+                </View>
+                }
         </SafeAreaView>
     );
 }
@@ -181,9 +195,16 @@ const styles = StyleSheet.create({
         padding: 5,
         paddingInline: 10,
         },
+    empty:{
+        flex: 1,
+        fontSize: 20,
+        alignSelf: 'center',
+        color: useTheme().colors.error,
+        },
     titleContainer:{
         flex: 1,
-        justifyContent: 'flex-start'
+        justifyContent: 'flex-start',
+        marginBottom: 10,
     },
     title:{
         flexDirection: 'row-reverse',
@@ -193,25 +214,36 @@ const styles = StyleSheet.create({
     titleRowContainer:{
         flex: 1
     },
-    image:{
+    bookContainer:{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10,
+        marginStart: 10,
+        marginBottom: 10,
+        maxWidth: 150,
+    },
+    bookCover:{
         justifyContent: 'center',
         alignItems: 'center',
-        height: "100%",
-        width: "100%",
-
+        width:"100%"
     },
-    leftStyle:{
-        aspectRatio: 0.72,
-        borderRadius: 4,
-        width: 80,
-        height: 200,
+    bookTitle:{
+        fontWeight: 'bold',
+        textAlign: 'center'
+    },
+    bookSubtitle:{
+        textAlign: 'center',
+        color: '#888',
     },
     authorContainer:{
-        flex: 0,
-        justifyContent: 'flex-start'
+        flex: 1,
+        justifyContent: 'flex-start',
     },
     authorRowContainer:{
-        flex: 1
+        flexDirection: 'row',
+        flex: 1,
+        padding: 10,
     },
     avatar:{
         marginStart: 10,
@@ -219,6 +251,6 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
     },
     author:{
-        alignItems: 'center',
+        alignSelf: 'center',
     }
 })
