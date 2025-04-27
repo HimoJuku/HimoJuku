@@ -1,10 +1,16 @@
 import Book from "@/db/models/books";
-export type SortMethod =
-  | 'title'
-  | 'author'
-  | 'date'
-  | 'lastRead'
-export type SortDesc = boolean;
+
+export type sortIndex =
+    | 'title'
+    | 'author'
+    | 'date'
+    | 'lastRead';
+
+export type SortMethod = {
+    method: sortIndex;
+    desc: boolean
+}
+
 /**
  * Sorts an array of books by title in ascending order.
  * @param books - The array of Book type to be sorted
@@ -13,7 +19,7 @@ export type SortDesc = boolean;
  * @description This function sorts the books by title in ascending order using the localeCompare method.
  * @example sortByTitle(books)
  */
-export function sortByTitle(books:Book[], desc:SortDesc): Book[] {
+export function sortByTitle(books:Book[], desc:boolean): Book[] {
     var arrCopy = [...books];
     if (desc === true) {
         arrCopy = books.sort((a, b) => a.title.localeCompare(b.title)).reverse();
@@ -41,7 +47,7 @@ export function sortByTitleDesc(books:Book[]): Book[] {
  * @description This function sorts the books by author in ascending order using the localeCompare method.
  * @example sortByAuthor(books)
  */
-export function sortByAuthor(books:Book[], desc:SortDesc):Book[] {
+export function sortByAuthor(books:Book[], desc:boolean):Book[] {
     console.log('sortByAuthor', desc);
     if(desc === true) {
         return books.sort((a, b) => a.author?.localeCompare(b.author || '') || 0).reverse();
@@ -68,7 +74,7 @@ export function sortByAuthorDesc(books:Book[]):Book[] {
  * @description This function sorts the books by date in ascending order using the importedAt field.
  * @example sortByDate(books)
  */
-export function sortByDate(books:Book[], desc:SortDesc):Book[] {
+export function sortByDate(books:Book[], desc:boolean):Book[] {
     console.log('sortByDate', desc);
     if (desc === true) {
         return books.sort((a, b) => b.importedAt - a.importedAt).reverse();
@@ -95,7 +101,7 @@ export function sortByDateDesc(books:Book[]):Book[] {
  * @description This function sorts the books by last read position in ascending order using the lastReadPosition field.
  * @example sortByLastRead(books)
  */
-export function sortByLastRead(books:Book[], desc:SortDesc):Book[] {
+export function sortByLastRead(books:Book[], desc:boolean):Book[] {
     console.log('sortByLastRead', desc);
     if (desc === true) {
         return books.sort((a, b) => a.lastReadPosition?.localeCompare(b.lastReadPosition || '') || 0).reverse();
@@ -129,13 +135,13 @@ export function sortByLastReadDesc(books:Book[]):Book[] {
  * // Sort by author descending
  * sortBooks(books, 'authorDesc')
  */
-export function sortBooks(books: Book[], method: SortMethod, desc: SortDesc): Book[] {
+export function sortBooks(books: Book[], method: SortMethod): Book[] {
   const arrCopy = [...books];
-  const sorters: Record<SortMethod, (books: Book[], desc: SortDesc) => Book[]> = {
+  const sorters: Record<string, (books: Book[], desc: boolean) => Book[]> = {
     'title': sortByTitle,
     'author': sortByAuthor,
     'date': sortByDate,
     'lastRead': sortByLastRead,
   };
-  return sorters[method](arrCopy, desc);
+  return sorters[method.method](arrCopy, method.desc);
 }
