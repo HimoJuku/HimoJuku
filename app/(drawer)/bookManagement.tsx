@@ -80,7 +80,7 @@ export default function BookManagementScreen() {
               content: sourceFile.text(),
             };
               try{
-                await ConvertToEpub(txtBook,"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");
+                await ConvertToEpub(txtBook,"");
                 console.log('File converted to EPUB:', destName);
                 break;
               }
