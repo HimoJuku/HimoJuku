@@ -26,13 +26,8 @@ export default function SearchScreen() {
         if (query) {
             handleSearch();
         }
-    }, [query]);
+    }, [query,searchType]);
 
-    useEffect(() => {
-        if (searchType) {
-            handleSearch();
-        }
-    }, [searchType]);
     /**
      * handleSearch
      * This function is used to search for books in the library.
@@ -198,8 +193,7 @@ const styles = StyleSheet.create({
     empty:{
         flex: 1,
         fontSize: 20,
-        alignSelf: 'center',
-        color: useTheme().colors.error,
+        alignSelf: 'center'
         },
     titleContainer:{
         flex: 1,
@@ -222,6 +216,7 @@ const styles = StyleSheet.create({
         marginStart: 10,
         marginBottom: 10,
         maxWidth: 150,
+        maxHeight: 300,
     },
     bookCover:{
         justifyContent: 'center',

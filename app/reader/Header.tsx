@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router'; 
+import { useRouter } from 'expo-router';
 import { IconButton, useTheme } from 'react-native-paper';
-import { useReader } from '@epubjs-react-native/core';
+import { useReader } from '@himojuku/epubjs-react-native';
 
 export interface HeaderProps {
   onOpenSearch: () => void;

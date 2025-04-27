@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { ReaderProvider } from '@epubjs-react-native/core';
+import { ReaderProvider } from '@himojuku/epubjs-react-native';
 import { Colors } from '@/constants/colors';
 
 import {
