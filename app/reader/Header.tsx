@@ -1,15 +1,15 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router'; 
+import { useRouter } from 'expo-router';
 import { IconButton, useTheme } from 'react-native-paper';
-import { useReader } from '@epubjs-react-native/core';
+import { useReader } from '@himojuku/epubjs-react-native';
 
 export interface HeaderProps {
   onOpenSearch: () => void;
   onOpenBookmarksList: () => void;
 }
 
-export function Header({
+export default function Header({
   onOpenSearch,
   onOpenBookmarksList,
 }: HeaderProps) {
@@ -24,7 +24,7 @@ export function Header({
   } = useReader();
 
   const handleToggleBookmark = async () => {
-    const loc = await getCurrentLocation();
+    const loc = getCurrentLocation();
     if (!loc) return;
     if (isBookmarked) {
       const bm = bookmarks.find(b =>
@@ -38,12 +38,12 @@ export function Header({
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.secondaryContainer }]}>  
+    <View style={[styles.container, { backgroundColor: colors.secondaryContainer }]}>
       <IconButton
         icon="arrow-left"
         size={24}
         iconColor={colors.onSurface}
-        onPress={() => router.back()}     
+        onPress={() => router.back()}
       />
 
       <View style={styles.actions}>

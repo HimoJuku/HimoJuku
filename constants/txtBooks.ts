@@ -8,7 +8,7 @@ export interface TxtBookBase {
     destFolder: string,
     bookTitle: string,
     destName: string,
-    language: "cn" | "en" | "jp"
+    language: "cn" | "en" | "jp" | ''
 }
 /**
  * Book with cover image

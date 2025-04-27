@@ -9,13 +9,13 @@ import {
   Pressable,
   StyleSheet,
 } from 'react-native';
-import * as FileSystem from 'expo-file-system';
-import { Reader, useReader } from '@epubjs-react-native/core';
+import { File } from 'expo-file-system/next';
+import { ReaderProvider, Reader, useReader } from '@himojuku/epubjs-react-native';
 import { useFileSystem } from '@epubjs-react-native/expo-file-system';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from 'react-native-paper';
-import { Header } from './Header';
-import { Footer } from './Footer';
+import Header from '@/app/reader/header';
+import Footer from '@/app/reader/footer';
 
 export default function ReaderPage() {
   const { path } = useLocalSearchParams<{ path: string }>();
@@ -36,9 +36,9 @@ export default function ReaderPage() {
         return;
       }
       const localPath = decodeURIComponent(path);
+      const epubFile = new File(localPath);
       try {
-        const info = await FileSystem.getInfoAsync(localPath);
-        if (!info.exists || info.size === 0) {
+        if (!epubFile.exists|| epubFile.size == 0) {
           setError(`找不到文件或文件大小为 0: ${localPath}`);
         } else {
           setValidPath(localPath);
@@ -60,14 +60,14 @@ export default function ReaderPage() {
     return (
       <SafeAreaView style={styles.center}>
         <ActivityIndicator size="large" />
-        <Text style={{ marginTop: 12 }}>正在加载本地文件...</Text>
+        <Text style={{ marginTop: 12 }}>Loading...</Text>
       </SafeAreaView>
     );
   }
   if (error || !validPath) {
     return (
       <SafeAreaView style={styles.center}>
-        <Text style={{ color: 'red', fontWeight: 'bold' }}> 加载失败</Text>
+        <Text style={{ color: 'red', fontWeight: 'bold' }}>Loading failed</Text>
         <Text style={{ marginTop: 10 }}>{error}</Text>
       </SafeAreaView>
     );
@@ -76,45 +76,47 @@ export default function ReaderPage() {
   const page = currentLocation?.start.location ?? 0;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <View style={{ flex: 1 }}>
-        {/* EPUB 阅读器 */}
-        <Reader src={validPath} fileSystem={useFileSystem} />
+    <ReaderProvider>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+        <View style={{ flex: 1 }}>
+          {/* EPUB 阅读器 */}
+          <Reader src={validPath} fileSystem={useFileSystem} />
 
-        {/* 左下角阅读进度 —— 黑色字体，透明背景，更贴近左下角 */}
-        <View style={styles.progressOverlay}>
-          <Text style={styles.progressText}>
-            {`${page} / ${totalLocations}`}
-          </Text>
+          {/* 左下角阅读进度 —— 黑色字体，透明背景，更贴近左下角 */}
+          <View style={styles.progressOverlay}>
+            <Text style={styles.progressText}>
+              {`${page} / ${totalLocations}`}
+            </Text>
+          </View>
+
+          {/* 中央可点击区域，切换 Header/Footer */}
+          <Pressable
+            style={styles.centerTouchArea}
+            onPress={toggleHeaderFooter}
+          />
+
+          {/* Header & Footer */}
+          {headerFooterVisible && (
+            <>
+              <View style={styles.header}>
+                <Header
+                  onOpenSearch={() => {}}
+                  onOpenBookmarksList={() => {}}
+                />
+              </View>
+              <View style={styles.footer}>
+                <Footer
+                  onOpenTOC={() => {}}
+                  onToggleFontPicker={() => {}}
+                  onOpenAdvancedSettings={() => {}}
+                  onToggleTheme={() => {}}
+                />
+              </View>
+            </>
+          )}
         </View>
-
-        {/* 中央可点击区域，切换 Header/Footer */}
-        <Pressable
-          style={styles.centerTouchArea}
-          onPress={toggleHeaderFooter}
-        />
-
-        {/* Header & Footer */}
-        {headerFooterVisible && (
-          <>
-            <View style={styles.header}>
-              <Header
-                onOpenSearch={() => {}}
-                onOpenBookmarksList={() => {}}
-              />
-            </View>
-            <View style={styles.footer}>
-              <Footer
-                onOpenTOC={() => {}}
-                onToggleFontPicker={() => {}}
-                onOpenAdvancedSettings={() => {}}
-                onToggleTheme={() => {}}
-              />
-            </View>
-          </>
-        )}
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </ReaderProvider>
   );
 }
 
