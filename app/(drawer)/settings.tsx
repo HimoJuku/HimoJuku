@@ -10,10 +10,10 @@ import {
   Surface
 } from 'react-native-paper';
 import { ThemeContext, ThemePreference } from '@/constants/settings';
-
 import { database } from '@/db';
 import Settings from '@/db/models/settings';
 
+const appData = require('@/app.json');
 const SettingsScreen = () => {
   const { themePreference, setThemePreference } = useContext(ThemeContext);
   const { colors } = useTheme();
@@ -186,7 +186,7 @@ const SettingsScreen = () => {
         <List.Section style={styles.versionContainer}>
           <Divider />
           <Text style={styles.versionText} variant="bodySmall">
-            App Version: 1.0.0
+            App Version: {appData.expo.version}
           </Text>
           <Text style={styles.versionText} variant="bodySmall">
             © 2025 Himojuku
