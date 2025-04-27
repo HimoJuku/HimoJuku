@@ -115,8 +115,8 @@ export default function SearchScreen() {
                 :
                 <View style={styles.titleRowContainer}>
                     <FlatList style={{ flexDirection: 'row',flex: 1}}
+                    horizontal={true}
                     data={books}
-                    keyExtractor={(b,) => b.id}
                     refreshControl={<RefreshControl refreshing={loading} />}
                     renderItem={({ item }) => (
                         <Card
@@ -144,6 +144,7 @@ export default function SearchScreen() {
                         />
                 </View>}
             </View>
+            }
             }
             { (searchType.shown === 'All' || searchType.shown === 'Author') &&
             <View style={styles.authorContainer}>
