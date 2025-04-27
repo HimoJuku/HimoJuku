@@ -145,7 +145,6 @@ export default function SearchScreen() {
                 </View>}
             </View>
             }
-            }
             { (searchType.shown === 'All' || searchType.shown === 'Author') &&
             <View style={styles.authorContainer}>
                 <Button icon="arrow-right" mode="text" onPress={() => console.log('Pressed')} contentStyle={styles.title} labelStyle={{ fontSize: 20, verticalAlign: "bottom" }}>
