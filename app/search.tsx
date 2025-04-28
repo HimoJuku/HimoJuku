@@ -2,7 +2,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Search , {SearchByAuthor, SearchByTitle} from '@/functions/searchBooks';
 import Book from '@/db/models/books';
 import React, { useState, useEffect } from 'react';
-import { ActivityIndicator, Text, Card, Chip, Button, Avatar, useTheme } from 'react-native-paper';
+import { ActivityIndicator, Text, Card, Chip, Button, Avatar } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { View, StyleSheet, FlatList, RefreshControl, Image } from 'react-native';
 import { searchBy } from '@/constants/search';
@@ -148,23 +148,26 @@ export default function SearchScreen() {
                 {error ?
                 <Text style={styles.empty}>No result from "{query}" by Author</Text>
                 :
-                <FlatList style={styles.authorRowContainer}
-                    data={books}
-                    keyExtractor={(b) => b.id}
-                    refreshControl={<RefreshControl refreshing={loading} />}
-                    renderItem={({ item }) => (
-                        <Card style={styles.avatar}
-                            elevation={0}
-                            onPress={() => openReader(item.filePath)}>
-                            <Avatar.Icon
-                                size={100}
-                                icon="account"
-                                style={styles.avatar} />
-                            <Text style={styles.author}>
-                                {item.author}
-                            </Text>
-                        </Card>
-                    )}/>}
+                <View style={styles.authorRowContainer}>
+                    <FlatList style={{ flexDirection: 'row',flex: 1}}
+                        data={books}
+                        keyExtractor={(b) => b.id}
+                        refreshControl={<RefreshControl refreshing={loading} />}
+                        renderItem={({ item }) => (
+                            <Card style={styles.avatar}
+                                elevation={0}
+                                onPress={() => openReader(item.filePath)}>
+                                <Avatar.Icon
+                                    size={100}
+                                    icon="account"
+                                    style={styles.avatar} />
+                                <Text style={styles.author}>
+                                    {item.author}
+                                </Text>
+                            </Card>
+                        )}/>
+                        </View>
+                        }
                 </View>
                 }
         </SafeAreaView>
@@ -221,7 +224,8 @@ const styles = StyleSheet.create({
     bookCover:{
         justifyContent: 'center',
         alignItems: 'center',
-        width:"100%"
+        width:"100%",
+        height:"60%"
     },
     bookTitle:{
         fontWeight: 'bold',
@@ -233,17 +237,14 @@ const styles = StyleSheet.create({
     },
     authorContainer:{
         flex: 1,
-        justifyContent: 'flex-start',
     },
     authorRowContainer:{
-        flexDirection: 'row',
         flex: 1,
         padding: 10,
     },
     avatar:{
         marginStart: 10,
         marginBottom: 10,
-        alignSelf: 'center',
     },
     author:{
         alignSelf: 'center',
