@@ -5,7 +5,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File, Directory, Paths } from 'expo-file-system/next';
 import { useTheme, Text, Button} from 'react-native-paper';
 
-import ConvertToEpub from '@/txt2epub/converter';
+import ConvertToEpub from '@/functions/txt2epub';
 import { TxtBook } from '@/constants/txtBooks';
 
 import { stringMd5 } from 'react-native-quick-md5';
@@ -76,11 +76,11 @@ export default function BookManagementScreen() {
               bookTitle: name.replace('.txt', ''),
               destFolder: destFolder,
               destName: destBaseName,
-              language: 'jp',
+              language: '',
               content: sourceFile.text(),
             };
               try{
-                await ConvertToEpub(txtBook,"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");
+                await ConvertToEpub(txtBook,"");
                 console.log('File converted to EPUB:', destName);
                 break;
               }

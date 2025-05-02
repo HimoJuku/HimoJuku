@@ -9,7 +9,7 @@ export interface FooterProps {
   onToggleTheme?: () => void;
 }
 
-export function Footer({
+export default function Footer({
   onOpenTOC = () => {},
   onToggleFontPicker = () => {},
   onOpenAdvancedSettings = () => {},
