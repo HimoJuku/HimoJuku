@@ -1,5 +1,5 @@
 import {TxtBook,TxtBookWithCover, TxtBookWithAuthor, TxtBookFull,Chapter} from '@/constants/txtBooks';
-import EpubBuilder, { EpubSettings } from '@kaze-desu/react-native-epub-creator';
+import EpubBuilder, { EpubSettings } from '@himojuku/react-native-epub-creator';
 
 /**
  * Convert txt book to epub
@@ -123,6 +123,7 @@ function ExtractDescriptionByRegex(content: string): string{
 async function ExtractDescriptionByAI(content: string,apiKey:string): Promise<string>{
     const sample = content.slice(0, 1500)// Sample the first 1500 words for AI processing
     const prompt = `你是一个简介生成专家，请根据轻小说段落，提取合适的内容作为简介。请只回复简介内容，不要添加“以下是”、”简介：“等辅助说明，避免生成器出现识别问题：\n\n${sample}`;
+    try{
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -130,18 +131,23 @@ async function ExtractDescriptionByAI(content: string,apiKey:string): Promise<st
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            model: 'deepseek/deepseek-chat',
+            model: 'deepseek/deepseek-chat-v3-0324',
             messages: [
                 {
                 role: 'user',
                 content: prompt,
                 max_tokens:20,
                 }]})});
-                const responseJson = await response.json();
-                const data = responseJson;
-                const contentText = data.choices[0].message.content.trim();
-                console.log("AI response: ", contentText);
-                return contentText;
+            const responseJson = await response.json();
+            const data = responseJson;
+            const contentText = data.choices[0].message.content.trim();
+            console.log("AI response: ", contentText);
+            return contentText;
+            }
+            catch (error) {
+                console.log("Error when fetching AI api: ", error);
+                return "AI failed to extract description, please check the content of the book.";
+            }
 }
 
 /**
@@ -199,6 +205,7 @@ async function FormatChapterByAI(content: string, key: string): Promise<Chapter[
     const sample = content.slice(1500, 3500)// Sample the first 1500 words for AI processing
     console.log("AI sample: ", sample);
     const prompt = `你是一个正则表达式语言专家，请根据以下内容，提供一个用于匹配章节的正则表达式，仅需要回复一个正则表达式,不要附带解释与其他信息：\n\n${sample}`;
+    try{
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -232,4 +239,9 @@ async function FormatChapterByAI(content: string, key: string): Promise<Chapter[
             const chapterRegex = new RegExp(regexPattern, 'g');
             console.log("AI generated regex: ", chapterRegex);
             return FormatChapterByRegex(content, chapterRegex);
+        }
+        catch (error) {
+            console.log("Error when fetching AI api: ", error);
+            return [];
+        }
 }

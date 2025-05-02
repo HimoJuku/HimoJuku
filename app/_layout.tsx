@@ -3,8 +3,6 @@ import {
   useColorScheme,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-
-import { ReaderProvider } from '@epubjs-react-native/core';
 import { Colors } from '@/constants/colors';
 
 import {
@@ -45,7 +43,6 @@ export default function RootLayout() {
       }}
     >
       <PaperProvider theme={paperTheme}>
-        <ReaderProvider>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <Stack
               initialRouteName="(drawer)"
@@ -83,7 +80,6 @@ export default function RootLayout() {
               />
             </Stack>
           </GestureHandlerRootView>
-        </ReaderProvider>
       </PaperProvider>
     </ThemeContext.Provider>
   );
