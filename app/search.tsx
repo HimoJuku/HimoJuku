@@ -151,6 +151,7 @@ export default function SearchScreen() {
                 <View style={styles.authorRowContainer}>
                     <FlatList style={{ flexDirection: 'row',flex: 1}}
                         data={books}
+                        horizontal={true}
                         keyExtractor={(b) => b.id}
                         refreshControl={<RefreshControl refreshing={loading} />}
                         renderItem={({ item }) => (
@@ -225,7 +226,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         width:"100%",
-        height:"60%"
+        height: 200,
     },
     bookTitle:{
         fontWeight: 'bold',
