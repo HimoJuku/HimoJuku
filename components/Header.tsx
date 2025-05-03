@@ -25,12 +25,35 @@ export function Header() {
 
 export function SearchBar() {
   const [searchQuery, setSearchQuery] = React.useState('');
+  const router = useRouter();
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      router.push({
+        pathname: '/search',
+        params: { query: searchQuery }
+      });
+    }
+  };
   return (
-      <Appbar.Header mode='medium' style={{backgroundColor:useTheme().colors.primary}}>
+      <Appbar.Header style={{backgroundColor:useTheme().colors.primary}}>
           <Searchbar
-          placeholder="Search"
-          onChangeText={setSearchQuery}
-          value={searchQuery}
+            elevation={3}
+            placeholder="Search"
+            onChangeText={setSearchQuery}
+            value={searchQuery}
+            style={{
+              margin: 10,
+              maxHeight: "70%",
+            }}
+            inputStyle={{
+              alignSelf: "center",
+            }}
+            onIconPress={() => router.back()}
+            icon={"arrow-left"}
+            iconColor={useTheme().colors.primary}
+            onSubmitEditing={handleSearch}
+            traileringIcon="magnify"
+            onTraileringIconPress={handleSearch}
           />
       </Appbar.Header>
   );

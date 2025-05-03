@@ -3,6 +3,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
 import { Colors } from '@/constants/colors';
 
 import {
@@ -54,7 +55,7 @@ export default function RootLayout() {
               }}
               >
               <Stack.Screen
-                name="reader"
+                name="reader/index"
                 options={{
                   title: "Reader",
                   animation: 'fade',
