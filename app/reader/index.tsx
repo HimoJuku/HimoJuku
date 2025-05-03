@@ -1,4 +1,4 @@
-// app/reader/index.tsx
+useState// app/reader/index.tsx
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -9,8 +9,8 @@ import {
   Pressable,
   StyleSheet,
 } from 'react-native';
-import { File } from 'expo-file-system/next';
-import { ReaderProvider, Reader, useReader } from '@himojuku/epubjs-react-native';
+import * as File from 'expo-file-system';
+import { ReaderProvider, Reader, useReader, Themes} from '@/epubjs-react-native/src';
 import { useFileSystem } from '@epubjs-react-native/expo-file-system';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from 'react-native-paper';
@@ -26,6 +26,13 @@ export default function ReaderPage() {
 
   const { colors } = useTheme();
   const { currentLocation, totalLocations } = useReader();
+  const [currentTheme, setCurrentTheme] = useState(Themes.LIGHT);
+  const [loadingTheme, setLoadingTheme] = useState(true);
+  const toggleTheme = () => {
+    setCurrentTheme(prev => 
+      prev === Themes.DARK ? Themes.LIGHT : Themes.DARK
+    );
+  };
 
   // 检查并设置本地文件路径
   useEffect(() => {
@@ -80,7 +87,11 @@ export default function ReaderPage() {
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <View style={{ flex: 1 }}>
           {/* EPUB 阅读器 */}
-          <Reader src={validPath} fileSystem={useFileSystem} />
+          <Reader 
+          src={validPath} 
+          fileSystem={useFileSystem} 
+          defaultTheme={currentTheme}
+          />
 
           {/* 左下角阅读进度 —— 黑色字体，透明背景，更贴近左下角 */}
           <View style={styles.progressOverlay}>
@@ -109,7 +120,7 @@ export default function ReaderPage() {
                   onOpenTOC={() => {}}
                   onToggleFontPicker={() => {}}
                   onOpenAdvancedSettings={() => {}}
-                  onToggleTheme={() => {}}
+                  onToggleTheme={toggleTheme}
                 />
               </View>
             </>
@@ -139,7 +150,6 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 10,
     letterSpacing: 1,
-    color: '#000',
   },
   centerTouchArea: {
     position: 'absolute',
