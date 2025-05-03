@@ -1,5 +1,3 @@
-useState// app/reader/index.tsx
-
 import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
@@ -9,13 +7,13 @@ import {
   Pressable,
   StyleSheet,
 } from 'react-native';
-import * as File from 'expo-file-system';
-import { ReaderProvider, Reader, useReader, Themes} from '@/epubjs-react-native/src';
+import { File } from 'expo-file-system/next';
+import { ReaderProvider, Reader, useReader, Themes} from '@himojuku/epubjs-react-native/';
 import { useFileSystem } from '@epubjs-react-native/expo-file-system';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from 'react-native-paper';
-import Header from '@/app/reader/header';
-import Footer from '@/app/reader/footer';
+import Header from '@/app/reader/Header';
+import Footer from '@/app/reader/Footer';
 
 export default function ReaderPage() {
   const { path } = useLocalSearchParams<{ path: string }>();
