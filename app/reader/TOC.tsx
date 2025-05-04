@@ -1,5 +1,4 @@
 // app/reader/TOC.tsx
-
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -30,13 +29,13 @@ export default function TOC({
   onSelectChapter,
 }: TOCProps) {
   const { colors } = useTheme();
+
   const [chapters, setChapters] = useState<Chapter[]>([]);
 
-  // 动画值
   const panelX      = useRef(new Animated.Value(-PANEL_WIDTH)).current;
   const maskOpacity = useRef(new Animated.Value(0)).current;
 
-  /* 载入章节 */
+  // 加载章节
   useEffect(() => {
     if (!bookId) return;
     database
@@ -44,10 +43,10 @@ export default function TOC({
       .query(Q.where('book_id', bookId), Q.sortBy('order', Q.asc))
       .fetch()
       .then(setChapters)
-      .catch(err => console.error('[TOC] load chapters:', err));
+      .catch((err) => console.error('[TOC] 章节加载失败:', err));
   }, [bookId]);
 
-  /* 显示 / 隐藏动画 */
+  // 显示/隐藏动画
   useEffect(() => {
     Animated.parallel([
       Animated.timing(panelX, {
@@ -67,45 +66,35 @@ export default function TOC({
     <Portal>
       {/* 背景遮罩 */}
       <Animated.View
-        pointerEvents={visible ? 'auto' : 'none'}
         style={[styles.overlay, { opacity: maskOpacity }]}
+        pointerEvents={visible ? 'auto' : 'none'}
       >
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
       </Animated.View>
 
-      {/* 侧栏 */}
+      {/* 侧栏滑出区域 */}
       <Animated.View
-        pointerEvents={visible ? 'auto' : 'none'}
         style={[styles.panel, { transform: [{ translateX: panelX }] }]}
+        pointerEvents={visible ? 'auto' : 'none'}
       >
         <Surface style={[styles.surface, { backgroundColor: colors.surface }]}>
-          <Text variant="titleMedium" style={styles.title}>
-            目录
-          </Text>
+          <Text variant="titleMedium" style={styles.title}>目录</Text>
 
           <FlatList
             data={chapters}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => {
-              // 修正双后缀
-              const cleanedHref = item.href
-              .replace(/\.htm\.html(?=#|$)/i, '.htm')
-              .replace(/\.html\.html(?=#|$)/i, '.html')
-              .split('#')[0];
-              
-              return (
-                <List.Item
-                  title={item.title}
-                  onPress={() => {
-                    console.log('[TOC] item pressed →', cleanedHref);
-                    onSelectChapter(cleanedHref);
-                    onClose();
-                  }}
-                  rippleColor={colors.secondaryContainer}
-                  style={styles.listItem}
-                />
-              );
-            }}
+            renderItem={({ item }) => (
+              <List.Item
+                title={item.title}
+                onPress={() => {
+                  console.log('[TOC] item pressed:', item.id, item.href);
+                  onSelectChapter(item.href);
+                  onClose();
+                }}
+                rippleColor={colors.secondaryContainer}
+                style={styles.listItem}
+              />
+            )}
           />
         </Surface>
       </Animated.View>

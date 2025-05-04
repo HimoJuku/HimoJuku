@@ -1,4 +1,11 @@
 // app/reader/index.tsx
+//
+// 功能：EPUB 阅读器页面
+// - 接收路由参数 path 和 bookId
+// - 验证本地 EPUB 文件是否有效
+// - 渲染 epubjs-react-native 阅读器
+// - 支持目录（TOC）侧栏与章节跳转
+// - 支持顶部 Header 和底部 Footer 控件切换
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -21,31 +28,14 @@ import { useTheme } from 'react-native-paper';
 
 import Header from '@/app/reader/Header';
 import Footer from '@/app/reader/Footer';
-import TOC from '@/app/reader/TOC';           // ← 新增导入
+import TOC from '@/app/reader/TOC';
 
 export default function ReaderPage() {
-  // 从路由读取 path 与 bookId
-  const { path, bookId } = useLocalSearchParams<{
-    path: string;
-    bookId: string;
-  }>();
-
+  const { path, bookId } = useLocalSearchParams<{ path: string; bookId: string }>();
   const [loading, setLoading] = useState(true);
   const [validPath, setValidPath] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // UI 状态
-  const [headerFooterVisible, setHeaderFooterVisible] = useState(false);
-  const [tocVisible, setTocVisible] = useState(false);         // ← TOC 可见性
-
-  const { colors } = useTheme();
-  const {
-    currentLocation,
-    totalLocations,
-    goToLocation,                                           // ← 获取跳转函数
-  } = useReader();
-
-  /** 检查文件路径有效性 */
   useEffect(() => {
     (async () => {
       if (!path) {
@@ -53,7 +43,6 @@ export default function ReaderPage() {
         setLoading(false);
         return;
       }
-
       const localPath = decodeURIComponent(path);
       const epubFile = new File(localPath);
 
@@ -71,19 +60,6 @@ export default function ReaderPage() {
     })();
   }, [path]);
 
-  /** 中央点击区域切换上下栏 */
-  const toggleHeaderFooter = () =>
-    setHeaderFooterVisible((v) => !v);
-
-  /** 章节选择回调 */
-  const handleSelectChapter = (href: string) => {
-    console.log('[ReaderPage] jumping to:', href, 'goToLocation?', !!goToLocation);
-    if (goToLocation) {
-      goToLocation(href);
-    }
-    setTocVisible(false);
-  };
-  // ----------------- Loading / Error -----------------
   if (loading) {
     return (
       <SafeAreaView style={styles.center}>
@@ -101,64 +77,82 @@ export default function ReaderPage() {
     );
   }
 
-  // 当前页数
-  const page = currentLocation?.start.location ?? 0;
-
-  // ----------------- Main UI -----------------
   return (
     <ReaderProvider>
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={{ flex: 1 }}>
-          {/* EPUB 阅读器 */}
-          <Reader src={validPath} fileSystem={useFileSystem} />
-
-          {/* 左下角页码浮层 */}
-          <View style={styles.progressOverlay}>
-            <Text style={styles.progressText}>
-              {`${page} / ${totalLocations}`}
-            </Text>
-          </View>
-
-          {/* 中央点按区 */}
-          <Pressable
-            style={styles.centerTouchArea}
-            onPress={toggleHeaderFooter}
-          />
-
-          {/* Header / Footer */}
-          {headerFooterVisible && (
-            <>
-              <View style={styles.header}>
-                <Header
-                  onOpenSearch={() => {}}
-                  onOpenBookmarksList={() => {}}
-                />
-              </View>
-              <View style={styles.footer}>
-                <Footer
-                  onOpenTOC={() => setTocVisible(true)}          // ← 绑定按钮
-                  onToggleFontPicker={() => {}}
-                  onOpenAdvancedSettings={() => {}}
-                  onToggleTheme={() => {}}
-                />
-              </View>
-            </>
-          )}
-
-          {/* TOC 侧栏 */}
-          <TOC
-            bookId={bookId as string}                           // ← 传 bookId
-            visible={tocVisible}
-            onClose={() => setTocVisible(false)}
-            onSelectChapter={handleSelectChapter}
-          />
-        </View>
-      </SafeAreaView>
+      <ReaderContent validPath={validPath} bookId={bookId as string} />
     </ReaderProvider>
   );
 }
 
-// ----------------- Styles -----------------
+function ReaderContent({ validPath, bookId }: { validPath: string; bookId: string }) {
+  const { colors } = useTheme();
+  const [headerFooterVisible, setHeaderFooterVisible] = useState(false);
+  const [tocVisible, setTocVisible] = useState(false);
+
+  const {
+    currentLocation,
+    totalLocations,
+    goToLocation,
+  } = useReader();
+
+  const page = currentLocation?.start.location ?? 0;
+
+  const toggleHeaderFooter = () => setHeaderFooterVisible(v => !v);
+
+  const handleSelectChapter = (href: string) => {
+    if (!goToLocation) {
+      console.error('[ReaderPage] goToLocation 函数不可用!');
+      return;
+    }
+
+    try {
+      const fileName = href.split('/').pop() || href;
+      console.log('[ReaderPage] 使用文件名跳转:', fileName);
+      goToLocation(fileName);
+      setTocVisible(false);
+    } catch (err: any) {
+      console.error('[ReaderPage] 跳转失败:', err.message || err);
+    }
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={{ flex: 1 }}>
+        <Reader src={validPath} fileSystem={useFileSystem} />
+
+        <View style={styles.progressOverlay}>
+          <Text style={styles.progressText}>{`${page} / ${totalLocations}`}</Text>
+        </View>
+
+        <Pressable style={styles.centerTouchArea} onPress={toggleHeaderFooter} />
+
+        {headerFooterVisible && (
+          <>
+            <View style={styles.header}>
+              <Header onOpenSearch={() => {}} onOpenBookmarksList={() => {}} />
+            </View>
+            <View style={styles.footer}>
+              <Footer
+                onOpenTOC={() => setTocVisible(true)}
+                onToggleFontPicker={() => {}}
+                onOpenAdvancedSettings={() => {}}
+                onToggleTheme={() => {}}
+              />
+            </View>
+          </>
+        )}
+
+        <TOC
+          bookId={bookId}
+          visible={tocVisible}
+          onClose={() => setTocVisible(false)}
+          onSelectChapter={handleSelectChapter}
+        />
+      </View>
+    </SafeAreaView>
+  );
+}
+
 const styles = StyleSheet.create({
   center: {
     flex: 1,
