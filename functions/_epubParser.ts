@@ -141,79 +141,102 @@ export async function ParseAndSaveEpub(epubPath: string): Promise<string> {
     newBookId = newBook.id;
 
     // 尝试解析 nav 目录并存入 chapters 表
-const manifestItems = Array.isArray(pack.manifest.item)
-  ? pack.manifest.item
-  : [pack.manifest.item];
-
-// 2. 多策略定位导航文件
-let navItem: any =
-  // EPUB3 nav.xhtml
-  manifestItems.find((it: any) =>
-    it['@_properties']?.split(' ').includes('nav')
-  ) ||
-  // EPUB2 toc.ncx
-  manifestItems.find((it: any) =>
-    it['@_media-type'] === 'application/x-dtbncx+xml'
-  ) ||
-  // 最后兜底：id 或 href 含 toc 或 nav
-  manifestItems.find((it: any) =>
-    /(nav|toc)\.(xhtml|xml|ncx)$/.test(it['@_href'])
-  );
-
-if (navItem && navItem['@_href']) {
-  const navPath = rootDir + navItem['@_href'];
-  const navFile = zip.file(navPath);
-
-  if (navFile) {
-    const text = await navFile.async('text');
-
-    if (navItem['@_media-type'] === 'application/x-dtbncx+xml') {
-      // —— EPUB2 .ncx 解析 ——  
-      const ncxParser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
-      const ncxObj = ncxParser.parse(text);
-      const navPoints = ncxObj.ncx.navMap.navPoint;
-      const points = Array.isArray(navPoints) ? navPoints : [navPoints];
-
-      let order = 0;
-      for (const pt of points) {
-        const label = pt.navLabel.text;
-        const contentSrc = pt.content['@_src'];
-        await database.collections.get<Chapter>('chapters').create((ch: any) => {
-          ch.title = String(label).trim();
-          ch.href  = contentSrc;
-          ch.order = order++;
-          ch._raw.book_id = newBook.id;
-        });
-      }
-    } else {
-      // —— EPUB3 .xhtml nav 解析 ——  
-      const navParser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
-      const navObj = navParser.parse(text);
-      // 取出 <nav> → <ol> → <li>
-      const navList = navObj.html.body.nav.ol.li;
-      const entries = Array.isArray(navList) ? navList : [navList];
-
-      let order = 0;
-      for (const entry of entries) {
-        const a = entry.a;
-        if (!a || !a['@_href']) continue;
-        const titleText = typeof a['#text'] === 'string'
-          ? a['#text']
-          : Array.isArray(a['#text'])
-          ? a['#text'][0]
-          : '';
-        const href = a['@_href'];
-
-        await database.collections.get<Chapter>('chapters').create((ch: any) => {
-          ch.title = titleText.trim();
-          ch.href  = href;
-          ch.order = order++;
-          ch._raw.book_id = newBook.id;
-        });
+    const manifestItems = Array.isArray(pack.manifest.item)
+    ? pack.manifest.item
+    : [pack.manifest.item];
+  
+  /** 找到 toc/nav 文件 */
+  let navItem: any =
+    // EPUB3 nav.xhtml
+    manifestItems.find((it: any) =>
+      it['@_properties']?.split(' ').includes('nav')
+    ) ||
+    // EPUB2 toc.ncx
+    manifestItems.find(
+      (it: any) => it['@_media-type'] === 'application/x-dtbncx+xml'
+    ) ||
+    // 兜底：文件名包含 nav/toc
+    manifestItems.find((it: any) =>
+      /(nav|toc)\.(xhtml|xml|ncx)$/i.test(it['@_href'])
+    );
+  
+  if (navItem) {
+    const navPath = rootDir + navItem['@_href']; // 带目录前缀
+    const navFile = zip.file(navPath);
+    if (navFile) {
+      const text = await navFile.async('text');
+      const isNCX =
+        navItem['@_media-type'] === 'application/x-dtbncx+xml';
+  
+      if (isNCX) {
+        /* ---------- EPUB2 (.ncx) ---------- */
+        const ncxObj = new XMLParser({
+          ignoreAttributes: false,
+          attributeNamePrefix: '@_',
+        }).parse(text);
+  
+        const navPoints = ncxObj?.ncx?.navMap?.navPoint ?? [];
+        const points = Array.isArray(navPoints) ? navPoints : [navPoints];
+  
+        let order = 0;
+        for (const p of points) {
+          const label = p.navLabel.text;
+          const src  = p.content['@_src']; // 可能含锚点
+          if (!src) continue;
+  
+          const fullHref = (rootDir + src)
+            // 修正重复扩展名
+            .replace(/\.htm\.html$/i, '.htm')
+            .replace(/\.html\.html$/i, '.html');
+  
+          await database.collections
+            .get<Chapter>('chapters')
+            .create((ch) => {
+              ch.bookId = newBookId;
+              ch.title   = String(label).trim();
+              ch.href    = fullHref;
+              ch.order   = order++;
+            });
+        }
+      } else {
+        /* ---------- EPUB3 (<nav> in .xhtml) ---------- */
+        const navObj = new XMLParser({
+          ignoreAttributes: false,
+          attributeNamePrefix: '@_',
+        }).parse(text);
+  
+        const liNodes = navObj?.html?.body?.nav?.ol?.li ?? [];
+        const entries = Array.isArray(liNodes) ? liNodes : [liNodes];
+  
+        let order = 0;
+        for (const li of entries) {
+          const anchor = li.a;
+          if (!anchor || !anchor['@_href']) continue;
+  
+          const titleText =
+            typeof anchor['#text'] === 'string'
+              ? anchor['#text']
+              : Array.isArray(anchor['#text'])
+              ? anchor['#text'][0]
+              : '';
+  
+          const relativeHref = anchor['@_href']; // 可能带 # 锚点
+          const fullHref = (rootDir + relativeHref)
+            .replace(/\.htm\.html$/i, '.htm')
+            .replace(/\.html\.html$/i, '.html');
+  
+          await database.collections
+            .get<Chapter>('chapters')
+            .create((ch) => {
+              ch.bookId = newBookId;
+              ch.title   = String(titleText).trim();
+              ch.href    = fullHref;
+              ch.order   = order++;
+            });
+        }
       }
     }
   }
-}
   });
 
   console.log(` Successfully parsed and stored: ${title} by ${author}`);

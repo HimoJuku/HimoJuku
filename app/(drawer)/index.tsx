@@ -58,15 +58,14 @@ export default function BookshelfScreen() {
   };
 
   //Open reader method
-  const openReader = (path: string) => {
-    router.push(
-      {
-        pathname: '/reader',
-        params: {
-          path: path
-        }
-      }
-    );
+  const openReader = (path: string, bookId: string) => {
+    router.push({
+      pathname: '/reader',
+      params: {
+        path,
+        bookId,         // ← 一定要传
+      },
+    });
   };
 
 
@@ -118,7 +117,7 @@ export default function BookshelfScreen() {
         renderItem={({ item }) => (
           <Card
             elevation={0}
-            onPress={() => openReader(item.filePath)}
+            onPress={() => openReader(item.filePath, item.id)}
           >
 
             <Card.Title
