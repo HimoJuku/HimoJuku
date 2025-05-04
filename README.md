@@ -9,6 +9,10 @@ Install dependencies
 ```bash
 pnpm install
 ```
+Install Expo dependencies
+```bash
+npx expo install --fix
+```
 ## Start the app
 ```bash
 pnpm exec expo run:android
