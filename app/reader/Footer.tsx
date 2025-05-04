@@ -90,16 +90,9 @@ export default function Footer({
               <Text>Display Direction: {typesettingDirections}</Text>
               <View style={styles.buttonsRow}>
                 <IconButton
-                  icon="book-open"
+                  icon={typesettingDirections === 'horizontal' ? 'book-open' : 'book-open-outline'}
                   size={20}
                   onPress={() => onChangeTypesettingDirection(typesettingDirections === 'horizontal' ? 'vertical' : 'horizontal')}
-                  disabled={typesettingDirections === 'horizontal'}
-                  />
-                <IconButton
-                  icon="book-open-outline"
-                  size={20}
-                  onPress={() => onChangeTypesettingDirection(typesettingDirections === 'vertical' ? 'horizontal' : 'vertical')}
-                  disabled={typesettingDirections === 'vertical'}
                 />
               </View>
             </View>
