@@ -16,6 +16,7 @@ import { ThemeContext, ThemePreference, ResolvedThemeType  } from '../constants/
 
 import { Stack } from 'expo-router';
 import { SearchBar } from '@/components/Header';
+import { ReaderProvider } from '@/epubjs-react-native/src';
 /**
  * Root layout component for the app.
  * This component sets up the theme context and the drawer navigator.
@@ -44,6 +45,7 @@ export default function RootLayout() {
       }}
     >
       <PaperProvider theme={paperTheme}>
+        <ReaderProvider>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <Stack
               initialRouteName="(drawer)"
@@ -81,6 +83,7 @@ export default function RootLayout() {
               />
             </Stack>
           </GestureHandlerRootView>
+        </ReaderProvider>
       </PaperProvider>
     </ThemeContext.Provider>
   );

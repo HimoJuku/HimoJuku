@@ -10,14 +10,13 @@ import {
   StyleSheet,
 } from 'react-native';
 import { File } from 'expo-file-system/next';
-import { ReaderProvider, Reader, useReader } from '@/epubjs-react-native/src';
+import { Reader, useReader } from '@/epubjs-react-native/src';
 import { useFileSystem } from '@epubjs-react-native/expo-file-system';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from 'react-native-paper';
-import Header from '@/app/reader/header';
-import Footer from '@/app/reader/footer';
-import { typesettingDirections, readingDirections } from '@/constants/settings';
-
+import Header from '@/app/reader/Header';
+import Footer from '@/app/reader/Footer';
+import { readingDirections, Typesetting } from '@/constants/settings';
 export default function ReaderPage() {
   const { path } = useLocalSearchParams<{ path: string }>();
   const [loading, setLoading] = useState(true);
@@ -30,12 +29,15 @@ export default function ReaderPage() {
   const [lineHeight, setLineHeight] = useState(1.5);
   // Settings state
   const [settingsVisible, setSettingsVisible] = useState(false);
-  const [settingsTypesettingDirection, setSettingsTypesettingDirection] = useState(typesettingDirections.horizontal);
+  const [settingsTypesetting, setSettingsTypesetting] = useState<Typesetting>({
+    writingMode: 'horizontal-tb',
+    textOrientation: 'mixed'
+  });
   const [settingsReadingDirection, setSettingsReadingDirection] = useState(readingDirections.ltr);
   const [flipSwipe, setFlipSwipe] = useState(false);
 
   const { colors } = useTheme();
-  const { currentLocation, totalLocations, } = useReader();
+  const { currentLocation, totalLocations, changeTypesetting } = useReader();
   
   useEffect(() => {
     (async () => {
@@ -87,8 +89,9 @@ export default function ReaderPage() {
     setLineHeight(height);
   };
   // TODO: Modify the typesetting direction
-  const handleChangeTypesettingDirection = (direction: string) => {
-    setSettingsTypesettingDirection(direction);
+  const handleChangeTypesetting = (direction: Typesetting) => {
+    setSettingsTypesetting(direction);
+    changeTypesetting(direction);
   };
   // Modify the reading direction
   const handleChangeReadingDirection = (direction: string) => {
@@ -116,11 +119,14 @@ export default function ReaderPage() {
   const page = currentLocation?.start.location ?? 0;
 
   return (
-    <ReaderProvider>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <View style={{ flex: 1 }}>
           {/* EPUB Reader*/}
-          <Reader src={validPath} fileSystem={useFileSystem} enableFlipSwipe={flipSwipe}/>
+          <Reader
+          src={validPath}
+          fileSystem={useFileSystem}
+          enableFlipSwipe={flipSwipe}
+          />
 
           {/* Reading progress in the lower-left corner —— Black font, transparent background, closer to the lower-left corner */}
           <View style={styles.progressOverlay}>
@@ -149,15 +155,15 @@ export default function ReaderPage() {
                   onOpenTOC={() => { } }
                   fontPickerVisible={fontPickerVisible}
                   onToggleFontPicker={onToggleFontPicker}
-                  settingsVisible={settingsVisible}
                   fontSize={fontSize}
                   onChangeFontSize={handleChangeFontSize}
                   lineHeight={lineHeight}
                   onChangeLineHeight={handleChangeLineHeight}
                   onToggleTheme={() => { } }
+                  settingsVisible={settingsVisible}
                   onToggleSettings={toggleSettings}
-                  onChangeTypesettingDirection={handleChangeTypesettingDirection}
-                  typesettingDirections={settingsTypesettingDirection}
+                  onChangeTypesetting={handleChangeTypesetting}
+                  typesetting={settingsTypesetting}
                   onChangeReadingDirection={handleChangeReadingDirection}
                   readingDirections={settingsReadingDirection}
                   />
@@ -166,7 +172,6 @@ export default function ReaderPage() {
           )}
         </View>
       </SafeAreaView>
-    </ReaderProvider>
   );
 }
 
