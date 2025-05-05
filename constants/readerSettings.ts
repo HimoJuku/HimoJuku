@@ -5,12 +5,11 @@ export type ReaderTheme = 'light' | 'dark' | 'sepia';
 export type ReaderSettings = {
   theme: ReaderTheme;
   fontSize: number;
-  // 其他设置项...
 };
 
 const SETTINGS_STORAGE_KEY = 'reader_settings';
 
-// 默认设置
+// Default settings for the reader
 const DEFAULT_SETTINGS: ReaderSettings = {
   theme: 'light', 
   fontSize: 16,
