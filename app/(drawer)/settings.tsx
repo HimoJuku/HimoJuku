@@ -137,7 +137,9 @@ const SettingsScreen = () => {
                     textColor={colors.primary}>
                     {getCurrentThemeLabel()}
                   </Button>
-                }>
+                }
+                anchorPosition='bottom'
+                >
                 {themes.map((theme) => (
                   <Menu.Item
                     key={theme}
@@ -169,7 +171,9 @@ const SettingsScreen = () => {
                     textColor={colors.primary}>
                     {selectedLanguage}
                   </Button>
-                }>
+                }
+                anchorPosition='bottom'
+                >
                 {languages.map((language) => (
                   <Menu.Item
                     key={language}

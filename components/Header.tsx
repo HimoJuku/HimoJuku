@@ -12,7 +12,10 @@ export function Header() {
   const router = useRouter();
   const navigation = useNavigation();
   return (
-    <Appbar.Header mode='center-aligned'>
+    <Appbar.Header 
+      mode='center-aligned'
+      statusBarHeight={0}
+    >
       <Appbar.Action icon="menu" onPress={() => navigation.dispatch(DrawerActions.openDrawer())} />
       <Appbar.Action icon= "" />
       <Appbar.Content title="Himojuku" color={theme.colors.primary}/>
@@ -36,7 +39,7 @@ export function SearchBar() {
   return (
       <Appbar.Header style={{backgroundColor:useTheme().colors.primary}}>
           <Searchbar
-            elevation={3}
+            elevation={1}
             placeholder="Search"
             onChangeText={setSearchQuery}
             value={searchQuery}

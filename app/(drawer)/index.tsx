@@ -11,15 +11,17 @@ import {
   Text,
   useTheme,
   Card,
-  Button
+  IconButton,
+  Button,
+  Menu,
+  Divider,
 } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { database } from '@/db';
 import Book from '@/db/models/books';
 import * as Sort from '@/functions/sort';
-import * as Shelf from '@/components/ShelfItem';
-import { desc, on } from '@nozbe/watermelondb/QueryDescription';
+
 type DrawerParamList = {
   bookShelf: undefined;
   bookManagement: undefined;
@@ -33,6 +35,7 @@ export default function BookshelfScreen() {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   //default sort method
   const [sortMethod, setSortMethod] = React.useState<Sort.SortMethod>({method: 'author', desc: false});
+  const [sortMenu , setSortMenu] = React.useState(false);
   const theme = useTheme();
   const router = useRouter();
 
@@ -46,11 +49,7 @@ export default function BookshelfScreen() {
     return () => sub.unsubscribe();
   }, []);
 
-  const toggleDesc = () => {
-    setSortMethod({method: sortMethod.method, desc: !sortMethod.desc});
-  }
-
-  function setMethodNSort(method: Sort.sortIndex, desc: boolean) {
+  function setMethodNSort(method: Sort.SortIndex, desc: boolean) {
     setSortMethod({method: method, desc: desc});
     const sorted = Sort.sortBooks(books, {method: method, desc: desc});
     setBooks(sorted);
@@ -60,7 +59,7 @@ export default function BookshelfScreen() {
     console.log('[onSort]','command:',[sortMethod,sortMethod.desc])
     const sorted = Sort.sortBooks(books, sortMethod);
     setBooks(sorted);
-    console.log('[onSort] Sorted. Rresult: ', books.map((b) => b.title));
+    console.log('[onSort] Sorted. Rresult: ', books.map((b) => b.importedAt));
   }
 
   const onRefresh = async () => {
@@ -83,7 +82,6 @@ export default function BookshelfScreen() {
     );
   };
 
-
   const styles = StyleSheet.create({
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginBottom: '10%'},
     card: {
@@ -98,6 +96,7 @@ export default function BookshelfScreen() {
     },
     title: { textAlign: 'left', textAlignVertical: 'top'},
     author: {fontSize: 10, color: theme.colors.outline, marginTop: 2},
+    menuItem: {width: '100%'},
   });
 
   if (books.length === 0) {
@@ -119,38 +118,179 @@ export default function BookshelfScreen() {
       style={{ flex: 1, backgroundColor: theme.colors.surface }} elevation={0}
     >
       //Tool Container
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'flex-start',
-          justifyContent: 'flex-start',
-          marginStart: 15,
-          marginEnd: 15,
-          marginBottom: 2,
-        }}
-      >
-        <Button
-          mode="text"
-          contentStyle={{
-            flexDirection: 'row-reverse',
-          }}
-          icon = {(props)=>(
-            <MaterialIcons 
-            name= {
-              sortMethod.desc
-              ? "arrow-upward"
-              : 'arrow-downward'
-            }
-            {...props}
-            />)
+        <Menu
+          anchor = {
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                justifyContent: 'flex-start',
+                marginStart: 15,
+                marginEnd: 15,
+                marginBottom: 2,
+              }}
+            >
+              <Button
+                mode="text"
+                contentStyle={{
+                  flexDirection: 'row-reverse',
+                  paddingEnd: 0,
+                }}
+                icon = {(props)=>(
+                  <MaterialIcons 
+                  name= {
+                    sortMethod.desc
+                    ? "arrow-upward"
+                    : 'arrow-downward'
+                  }
+                  {...props}
+                />
+                )}
+
+                onPress={()=>setSortMenu(true)}
+              >
+                {sortMethod.method}
+              </Button>
+            </View>
           }
-          onPress={()=>{
-            setMethodNSort('title', !sortMethod.desc);
+          anchorPosition='bottom'
+          visible={sortMenu}
+          onDismiss={() => setSortMenu(false)}
+          theme={{ colors: { elevation: {level2: theme.colors.elevation.level1} } }}
+          contentStyle={{
           }}
         >
-          {sortMethod.method}
-        </Button>
-      </View>
+          <Divider />
+          <Menu.Item
+            title="Title"
+            style={
+              (sortMethod.method === 'title')
+                ? {backgroundColor: theme.colors.elevation.level5}
+                : {}
+            }
+            titleStyle={
+              (sortMethod.method === 'title')
+              ?{color: theme.colors.primary}
+              :{}
+            }
+            leadingIcon={
+              (sortMethod.method === 'title')
+              ? ()=>(
+                <MaterialIcons 
+                name= {
+                  sortMethod.desc
+                  ? "arrow-upward"
+                  : 'arrow-downward'
+                }
+                size={20} color={theme.colors.primary}
+                />
+              )
+              : {}
+            }
+            onPress={() => {
+              (sortMethod.method === 'title')
+                ? setMethodNSort('title', !sortMethod.desc)
+                : setMethodNSort('title', sortMethod.desc);
+            }}
+          />
+          <Menu.Item
+            title="Author"
+            style={
+              (sortMethod.method === 'author')
+                ? {backgroundColor: theme.colors.elevation.level5}
+                : {}
+            }
+            titleStyle={
+              (sortMethod.method === 'author')
+              ?{color: theme.colors.primary}
+              :{}
+            }
+            leadingIcon={
+              (sortMethod.method === 'author')
+              ? ()=>(
+                <MaterialIcons 
+                name= {
+                  sortMethod.desc
+                  ? "arrow-upward"
+                  : 'arrow-downward'
+                }
+                size={20} color={theme.colors.primary}
+                />
+              )
+              : {}
+            }
+            contentStyle={[styles.menuItem]}
+            onPress={() => {
+              (sortMethod.method === 'author')
+                ? setMethodNSort('author', !sortMethod.desc)
+                : setMethodNSort('author', sortMethod.desc);
+            }}
+          />
+          <Menu.Item
+            title="Access Date"
+            style={
+              (sortMethod.method === 'lastRead')
+                ? {backgroundColor: theme.colors.elevation.level5}
+                : {}
+            }
+            titleStyle={
+              (sortMethod.method === 'lastRead')
+              ?{color: theme.colors.primary}
+              :{}
+            }
+            leadingIcon={
+              (sortMethod.method === 'lastRead')
+              ? ()=>(
+                <MaterialIcons 
+                name= {
+                  sortMethod.desc
+                  ? "arrow-upward"
+                  : 'arrow-downward'
+                }
+                size={20} color={theme.colors.primary}
+                />)
+              : {}
+            }
+            onPress={() => {
+              (sortMethod.method === 'lastRead')
+                ? setMethodNSort('lastRead', !sortMethod.desc)
+                : setMethodNSort('lastRead', sortMethod.desc);
+            }}
+          />
+          <Menu.Item
+            title="Date Added"
+            style={
+              (sortMethod.method === 'date')
+                ? {backgroundColor: theme.colors.elevation.level5}
+                : {}
+            }
+            titleStyle={
+              (sortMethod.method === 'date')
+              ?{color: theme.colors.primary}
+              :{}
+            }
+            leadingIcon={
+              (sortMethod.method === 'date')
+              ? ()=>(
+                <MaterialIcons 
+                name= {
+                  sortMethod.desc
+                  ? "arrow-upward"
+                  : 'arrow-downward'
+                }
+                size={20} color={theme.colors.primary}
+                />
+              )
+              : {}
+            }
+            onPress={() => {
+              (sortMethod.method === 'date')
+                ? setMethodNSort('date', !sortMethod.desc)
+                : setMethodNSort('date', sortMethod.desc);
+            }}
+          />
+        </Menu>
+
       //Book Shelf
       <FlatList
         data={books}

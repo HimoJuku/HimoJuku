@@ -16,13 +16,13 @@ import { color } from 'bun';
 export default function SearchScreen() {
     // Get the query from the search header params
     const { query } = useLocalSearchParams();
-    const [books, setBooks] = useState<Book[]>([]);
     const [titleResults, setTitleResults] = useState<Book[]>([]);
     const [authorResults, setAuthorResults] = useState<Book[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     // State to manage the search type (All, Title, Author)
     const [searchType, setSearchType] = useState<searchBy>({ shown: 'All' });
+    const theme = useTheme();
     const router = useRouter();
     // Execute the search function when the query changes
     useEffect(() => {
@@ -70,7 +70,7 @@ export default function SearchScreen() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1}}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
             {loading && <ActivityIndicator size="large" color="#0000ff" />}
             {/* ========== Choose Search Filter ========== */}
             <View style={styles.chipContainer}>

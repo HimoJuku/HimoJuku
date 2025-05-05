@@ -12,7 +12,7 @@ export const lightColors = {
       "onPrimaryContainer": "rgb(59, 7, 20)",
       "secondary": "rgb(118, 86, 90)",
       "onSecondary": "rgb(255, 255, 255)",
-      "secondaryContainer": "rgb(255, 217, 221)",
+      "secondaryContainer": "rgb(249, 232, 232)",
       "onSecondaryContainer": "rgb(44, 21, 24)",
       "tertiary": "rgb(120, 88, 49)",
       "onTertiary": "rgb(255, 255, 255)",

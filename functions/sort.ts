@@ -1,13 +1,13 @@
 import Book from "@/db/models/books";
 
-export type sortIndex =
-    | 'title'
-    | 'author'
-    | 'date'
+export type  SortIndex =
+    | 'title'   
+    | 'author'  
+    | 'date'    
     | 'lastRead';
 
 export type SortMethod = {
-    method: sortIndex;
+    method: SortIndex;
     desc: boolean
 }
 
@@ -50,7 +50,7 @@ export function sortByTitleDesc(books:Book[]): Book[] {
 export function sortByAuthor(books:Book[], desc:boolean):Book[] {
     console.log('sortByAuthor', desc);
     if(desc === true) {
-        return books.sort((a, b) => a.author?.localeCompare(b.author || '') || 0).reverse();
+        return books.sort((a, b) => b.author?.localeCompare(a.author || '') || 0);
     } 
     else {
         return books.sort((a, b) => a.author?.localeCompare(b.author || '') || 0);
@@ -77,10 +77,12 @@ export function sortByAuthorDesc(books:Book[]):Book[] {
 export function sortByDate(books:Book[], desc:boolean):Book[] {
     console.log('sortByDate', desc);
     if (desc === true) {
-        return books.sort((a, b) => b.importedAt - a.importedAt).reverse();
+        console.log('sortByDate desc');
+        return books.sort((a, b) => b.importedAt - a.importedAt);
     } 
     else {
-    return books.sort((a, b) => a.importedAt - b.importedAt);
+        console.log('sortByDate asc');
+        return books.sort((a, b) => a.importedAt - b.importedAt);
     }
 }
 /**
@@ -104,9 +106,11 @@ export function sortByDateDesc(books:Book[]):Book[] {
 export function sortByLastRead(books:Book[], desc:boolean):Book[] {
     console.log('sortByLastRead', desc);
     if (desc === true) {
-        return books.sort((a, b) => a.lastReadPosition?.localeCompare(b.lastReadPosition || '') || 0).reverse();
+        console.log('sortByLastRead desc');
+        return books.sort((a, b) => b.lastReadPosition?.localeCompare(a.lastReadPosition || '') || 0);
     }
     else {
+        console.log('sortByLastRead asc');
         return books.sort((a, b) => a.lastReadPosition?.localeCompare(b.lastReadPosition || '') || 0);
     }
 }
