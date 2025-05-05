@@ -9,7 +9,7 @@ export interface FooterProps {
   onToggleTheme?: () => void;
   settingsVisible: boolean;
   fontSize?: number;
-  onChangeFontSize?: (size: number) => void;
+  onChangeFontSize?: (delta: number) => void;
   lineHeight?: number;
   onChangeLineHeight?: (height: number) => void;
   onToggleSettings: () => void;
@@ -49,19 +49,19 @@ export default function Footer({
             <Text variant="titleMedium" style={styles.settingsTitle}>Font Settings</Text>
             {/* Here you can add various settings options, such as font size, line height, theme, etc.*/}
             <View style={styles.settingsRow}>
-              <Text>Font Size: {fontSize}</Text>
+              <Text>Font Size: {fontSize}%</Text>
               <View style={styles.buttonsRow}>
                 <IconButton
                   icon="minus"
                   size={20}
-                  onPress={() => onChangeFontSize(fontSize - 1)}
-                  disabled={fontSize <= 12}
+                  onPress={() => onChangeFontSize(-10)}
+                  disabled={fontSize <= 50}
                 />
                 <IconButton
                   icon="plus"
                   size={20}
-                  onPress={() => onChangeFontSize(fontSize + 1)}
-                  disabled={fontSize >= 24}
+                  onPress={() => onChangeFontSize(10)}
+                  disabled={fontSize >= 200}
                 />
               </View>
             </View>
@@ -172,7 +172,7 @@ export default function Footer({
           ]}
         />
         <IconButton
-          icon="white-balance-sunny"
+          icon="theme-light-dark"
           size={24}
           iconColor={colors.onSurface}
           onPress={onToggleTheme}

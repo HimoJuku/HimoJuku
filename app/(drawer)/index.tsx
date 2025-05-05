@@ -40,7 +40,6 @@ export default function BookshelfScreen() {
   const theme = useTheme();
   const router = useRouter();
 
-  /** Subscribe to Book changes */
   useEffect(() => {
     const sub = database.get<Book>('books').query().observe()
       .subscribe((fresh) => {
@@ -72,15 +71,14 @@ export default function BookshelfScreen() {
   };
 
   //Open reader method
-  const openReader = (path: string) => {
-    router.push(
-      {
-        pathname: '/reader',
-        params: {
-          path: path
-        }
-      }
-    );
+  const openReader = (path: string, bookId: string) => {
+    router.push({
+      pathname: '/reader',
+      params: {
+        path,
+        bookId,
+      },
+    });
   };
 
   const styles = StyleSheet.create({
@@ -302,8 +300,9 @@ export default function BookshelfScreen() {
         renderItem={({ item }) => (
           <Card
             elevation={0}
-            onPress={() => openReader(item.filePath)}
-            >
+            onPress={() => openReader(item.filePath, item.id)}
+          >
+
             <Card.Title
               style= {{
                 flexDirection: 'row',
