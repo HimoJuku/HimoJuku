@@ -35,7 +35,7 @@ export default function TOC({
   const panelX      = useRef(new Animated.Value(-PANEL_WIDTH)).current;
   const maskOpacity = useRef(new Animated.Value(0)).current;
 
-  // 加载章节
+//load the chapters when the bookId changes
   useEffect(() => {
     if (!bookId) return;
     database
@@ -43,10 +43,10 @@ export default function TOC({
       .query(Q.where('book_id', bookId), Q.sortBy('order', Q.asc))
       .fetch()
       .then(setChapters)
-      .catch((err) => console.error('[TOC] 章节加载失败:', err));
+      .catch((err) => console.error('Chapter load failed', err));
   }, [bookId]);
 
-  // 显示/隐藏动画
+//display the toc when the bookId changes
   useEffect(() => {
     Animated.parallel([
       Animated.timing(panelX, {
@@ -64,7 +64,7 @@ export default function TOC({
 
   return (
     <Portal>
-      {/* 背景遮罩 */}
+      {/* Background Mask */}
       <Animated.View
         style={[styles.overlay, { opacity: maskOpacity }]}
         pointerEvents={visible ? 'auto' : 'none'}
@@ -72,13 +72,13 @@ export default function TOC({
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
       </Animated.View>
 
-      {/* 侧栏滑出区域 */}
+      {/* Sidebar slide-out area */}
       <Animated.View
         style={[styles.panel, { transform: [{ translateX: panelX }] }]}
         pointerEvents={visible ? 'auto' : 'none'}
       >
         <Surface style={[styles.surface, { backgroundColor: colors.surface }]}>
-          <Text variant="titleMedium" style={styles.title}>目录</Text>
+          <Text variant="titleMedium" style={styles.title}>Contents</Text>
 
           <FlatList
             data={chapters}
