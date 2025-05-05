@@ -15,6 +15,7 @@ import {
   Button,
   Menu,
   Divider,
+  SegmentedButtons,
 } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -115,7 +116,11 @@ export default function BookshelfScreen() {
 
   return (
     <Surface
-      style={{ flex: 1, backgroundColor: theme.colors.surface }} elevation={0}
+      style={{
+        flex: 1,
+        backgroundColor: theme.colors.surface, 
+      }} 
+      elevation={0}
     >
       //Tool Container
         <Menu
@@ -123,19 +128,19 @@ export default function BookshelfScreen() {
             <View
               style={{
                 flexDirection: 'row',
+                flex: 0,
                 alignItems: 'flex-start',
                 justifyContent: 'flex-start',
-                marginStart: 15,
-                marginEnd: 15,
-                marginBottom: 2,
+                marginHorizontal: 15,
               }}
             >
               <Button
                 mode="text"
                 contentStyle={{
                   flexDirection: 'row-reverse',
-                  paddingEnd: 0,
+                  marginLeft: "auto",
                 }}
+                onPress={()=>setSortMenu(true)}
                 icon = {(props)=>(
                   <MaterialIcons 
                   name= {
@@ -145,9 +150,7 @@ export default function BookshelfScreen() {
                   }
                   {...props}
                 />
-                )}
-
-                onPress={()=>setSortMenu(true)}
+              )}
               >
                 {sortMethod.method}
               </Button>
