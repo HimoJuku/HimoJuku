@@ -63,59 +63,99 @@ export async function ParseAndSaveEpub(epubPath: string): Promise<string> {
     throw new Error(`EPUB parse error: OPF file not found at ${rootfilePath}`);
   }
   const opfText = await opfFile.async('text');
-  const opfParser = new XMLParser({ ignoreAttributes: false });
+  const opfParser = new XMLParser({
+    ignoreAttributes:    false,
+    removeNSPrefix:     true,   // ← 忽略掉所有前缀（如 opf:、dc:）
+    attributeNamePrefix: '@_',
+  });
   const opfObj = opfParser.parse(opfText);
-
+  
+  // --- 从根对象拿到 package 节点 ---
   const pack = opfObj.package;
-  if (!pack || !pack.metadata) {
-    throw new Error('EPUB parse error: missing <package> or <metadata> in opf');
+  if (!pack) {
+    throw new Error('EPUB parse error: missing <package> in opf');
   }
+  
+  // --- metadata 节点，现在不管它原来是 opf:metadata 还是 metadata，都能拿到 ---
   const metadata = pack.metadata;
-
-  const rawTitle = metadata['dc:title'];
-  const title = Array.isArray(rawTitle) ? rawTitle[0] || 'Untitled'
-                : typeof rawTitle === 'string' ? rawTitle : 'Untitled';
-
-  const rawAuthor = metadata['dc:creator'];
-  const author = Array.isArray(rawAuthor) ? rawAuthor[0] || 'Unknown Author'
-                 : typeof rawAuthor === 'string' ? rawAuthor : 'Unknown Author';
-
-  // Get cover ID from meta node
-  let coverId = '';
-  const metaNode = metadata.meta;
-  if (metaNode) {
-    if (Array.isArray(metaNode)) {
-      const coverMeta = metaNode.find((m: any) => m['@_name'] === 'cover');
-      if (coverMeta) {
-        coverId = coverMeta['@_content'];
+  if (!metadata) {
+    throw new Error('EPUB parse error: missing <metadata> in opf');
+  }
+  
+  // --- 1) 取标题 & 作者 ---
+// --- 在文件顶部或函数顶部添加 ---
+function extractText(node: any): string {
+  if (typeof node === 'string') {
+    return node;
+  }
+  if (Array.isArray(node)) {
+    return extractText(node[0]);
+  }
+  if (node && typeof node === 'object') {
+    if (typeof node['#text'] === 'string') {
+      return node['#text'];
+    }
+    for (const key of Object.keys(node)) {
+      if (typeof node[key] === 'string') {
+        return node[key];
       }
-    } else if (metaNode['@_name'] === 'cover') {
-      coverId = metaNode['@_content'];
     }
   }
+  return '';
+}
 
-  // Retrieve cover href from manifest
+// --- 在解析完 metadata 之后，替换原有 title/author 提取处 ---
+const rawTitleNode  = metadata['dc:title']  || metadata.title;
+const rawAuthorNode = metadata['dc:creator'] || metadata.creator;
+
+const title  = extractText(rawTitleNode)  || 'Untitled';
+const author = extractText(rawAuthorNode) || 'Unknown Author';
+
+  
+  // --- 2) 找 coverId（兼容 <meta name="cover" content="...">） ---
+  let coverId = '';
+  const metaNodes: any[] = Array.isArray(metadata.meta)
+    ? metadata.meta
+    : metadata.meta
+      ? [metadata.meta]
+      : [];
+  const coverMeta = metaNodes.find((m) => m['@_name'] === 'cover');
+  if (coverMeta) {
+    coverId = coverMeta['@_content'];
+  }
+  
+  // --- 3) 从 manifest 中找封面 href ---
   let coverHref = '';
   const manifest = pack.manifest;
-  if (coverId && manifest && manifest.item) {
-    let items = manifest.item;
-    if (!Array.isArray(items)) {
-      items = [items];
+  if (manifest) {
+    const items = Array.isArray(manifest.item)
+      ? manifest.item
+      : manifest.item
+        ? [manifest.item]
+        : [];
+  
+    const coverItem = items.find(
+      (itm: any) =>
+        itm['@_id'] === coverId ||
+        itm['@_href'] === coverId ||
+        itm['@_properties']?.includes('cover')
+    );
+  
+    if (coverItem) {
+      coverHref = coverItem['@_href'] || '';
     }
-    const coverItem = items.find((itm: any) => itm['@_id'] === coverId);
-    coverHref = coverItem ? coverItem['@_href'] : '';
   }
-
-  // Extract cover image and save locally (if available)
+  
+  // --- 4) 保存封面（不变） ---
   let localCoverPath = '';
   if (coverHref) {
     const coverFileFullPath = rootDir + coverHref;
     const coverFile = zip.file(coverFileFullPath);
     if (coverFile) {
       const coverBase64 = await coverFile.async('base64');
+      const ext = coverHref.split('.').pop() || 'jpg';
       const now = Date.now();
-      const coverExt = coverHref.split('.').pop() || 'jpg';
-      localCoverPath = `${localCoversDir}cover_${now}.${coverExt}`;
+      localCoverPath = `${localCoversDir}cover_${now}.${ext}`;
       await FileSystem.writeAsStringAsync(localCoverPath, coverBase64, {
         encoding: FileSystem.EncodingType.Base64,
       });
