@@ -101,20 +101,31 @@ function ReaderContent({ validPath, bookId }: { validPath: string; bookId: strin
 
   const handleSelectChapter = (href: string) => {
     if (!goToLocation) {
-      console.error('[ReaderPage] goToLocation 函数不可用!');
+      console.error('[ReaderPage] goToLocation 不可用');
       return;
     }
-
-    try {
-      const fileName = href.split('/').pop() || href;
-      console.log('[ReaderPage] 使用文件名跳转:', fileName);
+  
+    const fileName = href.split('/').pop() || href;
+    const noPrefix = href.replace(/^.*?(Text\/|chapter\/|OEBPS\/)/, '');
+    const fileNameNoExt = fileName.split('.').slice(0, -1).join('.');
+  
+    console.log('→ M2 noPrefix 尝试跳转:', noPrefix);
+    goToLocation(noPrefix);
+  
+    setTimeout(() => {
+      console.log('→ M3 fileName 尝试跳转:', fileName);
       goToLocation(fileName);
-      setTocVisible(false);
-    } catch (err: any) {
-      console.error('[ReaderPage] 跳转失败:', err.message || err);
-    }
+    }, 100);
+  
+    setTimeout(() => {
+      console.log('→ M4 fileNameNoExt 尝试跳转:', fileNameNoExt);
+      goToLocation(fileNameNoExt);
+    }, 200);
+  
+    setTocVisible(false);
   };
-
+  
+  
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ flex: 1 }}>
