@@ -16,6 +16,8 @@ export default function SearchScreen() {
     // Get the query from the search header params
     const { query } = useLocalSearchParams();
     const [books, setBooks] = useState<Book[]>([]);
+    const [titleResults, setTitleResults] = useState<Book[]>([]);
+    const [authorResults, setAuthorResults] = useState<Book[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     // State to manage the search type (All, Title, Author)
@@ -36,15 +38,16 @@ export default function SearchScreen() {
         setLoading(true);
         setError(null);
         try {
-            const result = searchType.shown === 'All' ? await Search(query as string)
-            : searchType.shown === 'Title' ? await SearchByTitle(query as string)
-            : await SearchByAuthor(query as string);
-            if (result && result.length > 0) {
-                setBooks(result);
-            } else {
-                setBooks([]);
-                setError('No results found');
+            const byTitle = await SearchByTitle(query as string);
+            const byAuthor = await SearchByAuthor(query as string);
+            setTitleResults(byTitle);
+            setAuthorResults(byAuthor);
+            /*
+            setBooks([...byTitle, ...byAuthor]);
+            if (books.length === 0) {
+                setError(`No results found for "${query}"`);
             }
+            */
         } catch (err) {
             setError('An error occurred while searching');
             console.error(err);
@@ -68,6 +71,7 @@ export default function SearchScreen() {
     return (
         <SafeAreaView style={{ flex: 1 }}>
             {loading && <ActivityIndicator size="large" color="#0000ff" />}
+            {/* ========== Choose Search Filter ========== */}
             <View style={styles.chipContainer}>
                 <View style={styles.chipRowContainer}>
                     <Chip onPress={() =>
@@ -100,7 +104,8 @@ export default function SearchScreen() {
                     </Chip>
                 </View>
             </View>
-            { (searchType.shown === 'All' || searchType.shown === 'Title') &&
+            {/* ========== Title Search Result ========== */}
+            { (searchType.shown === 'All' || searchType.shown === 'Title') && (titleResults.length > 0) &&
             <View style={styles.titleContainer} >
                 <Button icon="arrow-right" mode="text" onPress={() => console.log('Pressed')}contentStyle={styles.title} labelStyle={{ fontSize: 20, verticalAlign:"bottom"}} >
                     <Text variant='headlineSmall'>With Title</Text>
@@ -111,7 +116,7 @@ export default function SearchScreen() {
                 <View style={styles.titleRowContainer}>
                     <FlatList style={{ flexDirection: 'row',flex: 1}}
                     horizontal={true}
-                    data={books}
+                    data={titleResults}
                     refreshControl={<RefreshControl refreshing={loading} />}
                     renderItem={({ item }) => (
                         <Card
@@ -140,7 +145,8 @@ export default function SearchScreen() {
                 </View>}
             </View>
             }
-            { (searchType.shown === 'All' || searchType.shown === 'Author') &&
+            {/* ========== Author Search Result ========== */}
+            { (searchType.shown === 'All' || searchType.shown === 'Author') && (authorResults.length > 0) &&
             <View style={styles.authorContainer}>
                 <Button icon="arrow-right" mode="text" onPress={() => console.log('Pressed')} contentStyle={styles.title} labelStyle={{ fontSize: 20, verticalAlign: "bottom" }}>
                     <Text variant='headlineSmall'>With Author</Text>
@@ -150,7 +156,7 @@ export default function SearchScreen() {
                 :
                 <View style={styles.authorRowContainer}>
                     <FlatList style={{ flexDirection: 'row',flex: 1}}
-                        data={books}
+                        data={authorResults}
                         horizontal={true}
                         keyExtractor={(b) => b.id}
                         refreshControl={<RefreshControl refreshing={loading} />}
@@ -225,10 +231,12 @@ const styles = StyleSheet.create({
     bookCover:{
         justifyContent: 'center',
         alignItems: 'center',
-        width:"100%",
         height: 200,
+        width: "100%",
+        resizeMode: 'cover',
     },
     bookTitle:{
+        minWidth: 130,
         fontWeight: 'bold',
         textAlign: 'center'
     },

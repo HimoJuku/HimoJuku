@@ -16,7 +16,7 @@ import { ThemeContext, ThemePreference, ResolvedThemeType  } from '../constants/
 
 import { Stack } from 'expo-router';
 import { SearchBar } from '@/components/Header';
-import { ReaderProvider } from '@/epubjs-react-native/src';
+import { ReaderProvider } from '@himojuku/epubjs-react-native';
 /**
  * Root layout component for the app.
  * This component sets up the theme context and the drawer navigator.

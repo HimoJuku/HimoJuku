@@ -10,7 +10,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { File } from 'expo-file-system/next';
-import { Reader, useReader } from '@/epubjs-react-native/src';
+import { Reader, useReader } from '@himojuku/epubjs-react-native';
 import { useFileSystem } from '@epubjs-react-native/expo-file-system';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from 'react-native-paper';
