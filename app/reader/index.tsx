@@ -8,7 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { File } from 'expo-file-system/next';
-import { ReaderProvider, Reader, useReader, Themes} from '@himojuku/epubjs-react-native';
+import { Reader, useReader, Themes} from '@himojuku/epubjs-react-native';
 import { useFileSystem } from '@epubjs-react-native/expo-file-system';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from 'react-native-paper';
@@ -91,8 +91,9 @@ export default function ReaderPage() {
   const handleChangeFontSize = (delta: number) => {
     setFontSize(prev => {
       const newSize = Math.max(50, Math.min(200, prev + delta)); // 限制在 50%-200%
+      console.log('Font size changed to:', newSize);
       // 调用 epub 实例方法（假设通过 useReader 获取）
-      changeFontSize((newSize / 100).toString()); // 转换为缩放比例
+      changeFontSize(newSize+"%"); // 转换为缩放比例
       return newSize;
     });
   };

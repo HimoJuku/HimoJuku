@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { Colors } from '@/constants/colors';
+import { Colors } from '../constants/colors';
 
 import {
   MD3DarkTheme,
@@ -16,7 +16,7 @@ import { ThemeContext, ThemePreference, ResolvedThemeType  } from '../constants/
 
 import { Stack } from 'expo-router';
 import { SearchBar } from '@/components/Header';
-import { ReaderProvider } from '@/epubjs-react-native/src';
+import { ReaderProvider } from '@himojuku/epubjs-react-native';
 /**
  * Root layout component for the app.
  * This component sets up the theme context and the drawer navigator.
@@ -25,9 +25,7 @@ import { ReaderProvider } from '@/epubjs-react-native/src';
 export default function RootLayout() {
   const systemColorScheme = useColorScheme();
   // Get the system color scheme (light or dark) from the device settings
-  const [themePreference, setThemePreference] =
-    React.useState<ThemePreference>("system");
-
+  const [themePreference, setThemePreference] = React.useState<ThemePreference>("system");
   const safeSystemTheme = systemColorScheme || "light";
   const resolvedTheme: ResolvedThemeType =
     themePreference === "system" ? safeSystemTheme : themePreference;
