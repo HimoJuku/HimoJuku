@@ -4,9 +4,8 @@ import {
     Searchbar,
 } from 'react-native-paper';
 import React from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter,useNavigation } from 'expo-router';
 import { DrawerActions } from '@react-navigation/native';
-import { useNavigation } from 'expo-router';
 
 export function Header() {
   const theme = useTheme();

@@ -4,7 +4,6 @@ import {
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { ReaderProvider } from '@epubjs-react-native/core';
 import { Colors } from '@/constants/colors';
 
 import {
@@ -17,6 +16,7 @@ import { ThemeContext, ThemePreference, ResolvedThemeType  } from '../constants/
 
 import { Stack } from 'expo-router';
 import { SearchBar } from '@/components/Header';
+import { ReaderProvider } from '@himojuku/epubjs-react-native';
 /**
  * Root layout component for the app.
  * This component sets up the theme context and the drawer navigator.
