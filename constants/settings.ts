@@ -16,9 +16,9 @@ export const ThemeContext = React.createContext<ThemeContextType>({
   setThemePreference: () => {},
 });
 
-export const typesettingDirections = {
-  horizontal: "horizontal",
-  vertical: "vertical",
+export type Typesetting = {
+  writingMode: 'horizontal-tb' | 'vertical-rl' | 'vertical-lr';
+  textOrientation: 'mixed' | 'upright' | 'sideways';
 };
 
 export const readingDirections = {
