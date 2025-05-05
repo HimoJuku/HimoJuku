@@ -30,8 +30,8 @@ export const mySchema = appSchema({
       columns: [
         { name: 'book_id',       type: 'string', isIndexed: true },
         { name: 'title',         type: 'string' },
-        { name: 'href',          type: 'string' },  
-        { name: 'order',         type: 'number' },       
+        { name: 'href',          type: 'string' },
+        { name: 'order',         type: 'number' },
       ],
     }),
 

@@ -12,15 +12,17 @@ import { Reader, useReader, Themes} from '@himojuku/epubjs-react-native';
 import { useFileSystem } from '@epubjs-react-native/expo-file-system';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from 'react-native-paper';
+
 import Header from '@/app/reader/Header';
 import Footer from '@/app/reader/Footer';
+import TOC from '@/app/reader/TOC';
 import { readingDirections, Typesetting } from '@/constants/settings';
 
 
 export default function ReaderPage() {
-  const { path } = useLocalSearchParams<{ path: string }>();
+  const { path, bookId } = useLocalSearchParams<{ path: string; bookId: string }>();
   const [loading, setLoading] = useState(true);
-  const [validPath, setValidPath] = useState<string | null>(null);
+  const [validPath, setValidPath] = useState<string>();
   const [error, setError] = useState<string | null>(null);
   const [headerFooterVisible, setHeaderFooterVisible] = useState(false);
   // Font picker state
@@ -37,15 +39,17 @@ export default function ReaderPage() {
   const [flipSwipe, setFlipSwipe] = useState(false);
 
   const { colors } = useTheme();
-  const { currentLocation, totalLocations, changeFontSize, changeTypesetting } = useReader();
+  const { currentLocation, totalLocations, changeFontSize, changeTypesetting, goToLocation, changeTheme } = useReader();
+  const page = currentLocation?.start.location ?? 0;
+  const [tocVisible, setTocVisible] = useState(false);
+
   const [currentTheme, setCurrentTheme] = useState(Themes.LIGHT);
   const toggleTheme = () => {
-    setCurrentTheme(prev => 
-      prev === Themes.DARK ? Themes.LIGHT : Themes.DARK
-    );
+    console.log('Toggle theme:', currentTheme === Themes.DARK ? 'Light' : 'Dark');
+    // Toggle between light and dark themes
+    setCurrentTheme(currentTheme === Themes.DARK ? Themes.LIGHT : Themes.DARK);
+    changeTheme(currentTheme === Themes.DARK ? Themes.LIGHT : Themes.DARK);
   };
-
-  // 检查并设置本地文件路径
   useEffect(() => {
     (async () => {
       if (!path) {
@@ -55,6 +59,7 @@ export default function ReaderPage() {
       }
       const localPath = decodeURIComponent(path);
       const epubFile = new File(localPath);
+
       try {
         if (!epubFile.exists|| epubFile.size == 0) {
           setError(`File not found or file size is 0: ${localPath}`);
@@ -67,6 +72,7 @@ export default function ReaderPage() {
         setLoading(false);
       }
     })();
+    
   }, [path]);
 
   // Set the header/footer visibility
@@ -111,83 +117,107 @@ export default function ReaderPage() {
     setFlipSwipe(direction === readingDirections.rtl);
     setSettingsReadingDirection(direction);
   }
+  const handleSelectChapter = (href: string) => {
+    if (!goToLocation) {
+      console.error('[ReaderPage] goToLocation 不可用');
+      return;
+    }
 
   if (loading) {
     return (
       <SafeAreaView style={styles.center}>
         <ActivityIndicator size="large" />
-        <Text style={{ marginTop: 12 }}>Loading...</Text>
+        <Text style={{ marginTop: 12 }}>Loading…</Text>
       </SafeAreaView>
     );
   }
   if (error || !validPath) {
     return (
       <SafeAreaView style={styles.center}>
-        <Text style={{ color: 'red', fontWeight: 'bold' }}>Loading failed</Text>
+        <Text style={{ color: 'red', fontWeight: 'bold' }}> Load failed</Text>
         <Text style={{ marginTop: 10 }}>{error}</Text>
       </SafeAreaView>
     );
   }
+      const fileName = href.split('/').pop() || href;
+      const noPrefix = href.replace(/^.*?(Text\/|chapter\/|OEBPS\/)/, '');
+      const fileNameNoExt = fileName.split('.').slice(0, -1).join('.');
+    
+      console.log('→ M2 noPrefix 尝试跳转:', noPrefix);
+      goToLocation(noPrefix);
+    
+      setTimeout(() => {
+        console.log('→ M3 fileName 尝试跳转:', fileName);
+        goToLocation(fileName);
+      }, 100);
+    
+      setTimeout(() => {
+        console.log('→ M4 fileNameNoExt 尝试跳转:', fileNameNoExt);
+        goToLocation(fileNameNoExt);
+      }, 200);
+    
+      setTocVisible(false);
+    };
 
-  const page = currentLocation?.start.location ?? 0;
+    return (
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+          <View style={{ flex: 1 }}>
+            {/* EPUB Reader*/}
+            <Reader
+            src={validPath || ''}
+            fileSystem={useFileSystem}
+            enableFlipSwipe={flipSwipe}
+            />
 
-  return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={{ flex: 1 }}>
-          {/* EPUB 阅读器 */}
-          <Reader 
-          src={validPath} 
-          fileSystem={useFileSystem} 
-          enableFlipSwipe={flipSwipe}
-          defaultTheme={currentTheme}
-          />
+            {/* Reading progress in the lower-left corner —— Black font, transparent background, closer to the lower-left corner */}
+            <View style={styles.progressOverlay}>
+              <Text style={styles.progressText}>
+                {`${page} / ${totalLocations}`}
+              </Text>
+            </View>
+  
+              {/* Touch area to toggle header/footer */}
+          <Pressable style={styles.centerTouchArea} onPress={toggleHeaderFooter} />
 
-          {/* Reading progress in the lower-left corner —— Black font, transparent background, closer to the lower-left corner */}
-          <View style={styles.progressOverlay}>
-            <Text style={styles.progressText}>
-              {`${page} / ${totalLocations}`}
-            </Text>
-          </View>
-
-          {/* Central clickable area to switch Header/Footer */}
-          <Pressable
-            style={styles.centerTouchArea}
-            onPress={toggleHeaderFooter}
-          />
-
-          {/* Header & Footer */}
-          {headerFooterVisible && (
-            <>
-              <View style={styles.header}>
-                <Header
-                  onOpenSearch={() => {}}
-                  onOpenBookmarksList={() => {}}
-                />
-              </View>
-              <View style={styles.footer}>
-              <Footer
-                  onOpenTOC={() => { } }
-                  fontPickerVisible={fontPickerVisible}
-                  onToggleFontPicker={onToggleFontPicker}
-                  fontSize={fontSize}
-                  onChangeFontSize={handleChangeFontSize}
-                  lineHeight={lineHeight}
-                  onChangeLineHeight={handleChangeLineHeight}
-                  onToggleTheme={toggleTheme}
-                  settingsVisible={settingsVisible}
-                  onToggleSettings={toggleSettings}
-                  onChangeTypesetting={handleChangeTypesetting}
-                  typesetting={settingsTypesetting}
-                  onChangeReadingDirection={handleChangeReadingDirection}
-                  readingDirections={settingsReadingDirection}
+            {/* Header & Footer */}
+            {headerFooterVisible && (
+              <>
+                <View style={styles.header}>
+                  <Header
+                    onOpenSearch={() => {}}
+                    onOpenBookmarksList={() => {}}
                   />
-              </View>
-            </>
-          )}
-        </View>
-      </SafeAreaView>
-  );
-}
+                </View>
+                <View style={styles.footer}>
+                <Footer
+                    onOpenTOC={() => setTocVisible(true) }
+                    fontPickerVisible={fontPickerVisible}
+                    onToggleFontPicker={onToggleFontPicker}
+                    fontSize={fontSize}
+                    onChangeFontSize={handleChangeFontSize}
+                    lineHeight={lineHeight}
+                    onChangeLineHeight={handleChangeLineHeight}
+                    onToggleTheme={toggleTheme}
+                    settingsVisible={settingsVisible}
+                    onToggleSettings={toggleSettings}
+                    onChangeTypesetting={handleChangeTypesetting}
+                    typesetting={settingsTypesetting}
+                    onChangeReadingDirection={handleChangeReadingDirection}
+                    readingDirections={settingsReadingDirection}
+                    />
+                </View>
+              </>
+            )}
+            <TOC
+              bookId={bookId}
+              visible={tocVisible}
+              onClose={() => setTocVisible(false)}
+              onSelectChapter={handleSelectChapter}
+            />
+          </View>
+        </SafeAreaView>
+    );
+  }
 
 const styles = StyleSheet.create({
   center: {

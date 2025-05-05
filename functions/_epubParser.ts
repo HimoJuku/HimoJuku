@@ -63,59 +63,102 @@ export async function ParseAndSaveEpub(epubPath: string): Promise<string> {
     throw new Error(`EPUB parse error: OPF file not found at ${rootfilePath}`);
   }
   const opfText = await opfFile.async('text');
-  const opfParser = new XMLParser({ ignoreAttributes: false });
+  const opfParser = new XMLParser({
+    ignoreAttributes:    false,
+    removeNSPrefix:     true,
+    attributeNamePrefix: '@_',
+  });
   const opfObj = opfParser.parse(opfText);
-
+  
+  // Check for the package element in the OPF file
   const pack = opfObj.package;
-  if (!pack || !pack.metadata) {
-    throw new Error('EPUB parse error: missing <package> or <metadata> in opf');
+  if (!pack) {
+    throw new Error('EPUB parse error: missing <package> in opf');
   }
+  // Check for the metadata element in the package
   const metadata = pack.metadata;
-
-  const rawTitle = metadata['dc:title'];
-  const title = Array.isArray(rawTitle) ? rawTitle[0] || 'Untitled'
-                : typeof rawTitle === 'string' ? rawTitle : 'Untitled';
-
-  const rawAuthor = metadata['dc:creator'];
-  const author = Array.isArray(rawAuthor) ? rawAuthor[0] || 'Unknown Author'
-                 : typeof rawAuthor === 'string' ? rawAuthor : 'Unknown Author';
-
-  // Get cover ID from meta node
-  let coverId = '';
-  const metaNode = metadata.meta;
-  if (metaNode) {
-    if (Array.isArray(metaNode)) {
-      const coverMeta = metaNode.find((m: any) => m['@_name'] === 'cover');
-      if (coverMeta) {
-        coverId = coverMeta['@_content'];
-      }
-    } else if (metaNode['@_name'] === 'cover') {
-      coverId = metaNode['@_content'];
-    }
+  if (!metadata) {
+    throw new Error('EPUB parse error: missing <metadata> in opf');
   }
 
-  // Retrieve cover href from manifest
+  /**
+   * Extracts text from a node, handling various formats (string, array, object).
+   * @param node - The node to extract text from.
+   * @returns The extracted text.
+   */
+  function extractText(node: any): string {
+    if (typeof node === 'string') {
+      return node;
+    }
+    if (Array.isArray(node)) {
+      return extractText(node[0]);
+    }
+    if (node && typeof node === 'object') {
+      if (typeof node['#text'] === 'string') {
+        return node['#text'];
+      }
+      for (const key of Object.keys(node)) {
+        if (typeof node[key] === 'string') {
+          return node[key];
+        }
+      }
+    }
+    return '';
+  }
+
+  // Extract title and author from metadata
+  const rawTitleNode  = metadata['dc:title']  || metadata.title;
+  const rawAuthorNode = metadata['dc:creator'] || metadata.creator;
+
+  // Handle both string and array formats
+  const title  = extractText(rawTitleNode)  || 'Untitled';
+  const author = extractText(rawAuthorNode) || 'Unknown Author';
+
+  // Extract cover ID from metadata
+  let coverId = '';
+  const metaNodes: any[] = Array.isArray(metadata.meta)
+    ? metadata.meta
+    : metadata.meta
+      ? [metadata.meta]
+      : [];
+  const coverMeta = metaNodes.find((m) => m['@_name'] === 'cover');
+  if (coverMeta) {
+    coverId = coverMeta['@_content'];
+  }
+
+  // If no cover ID is found, use the first image file as the cover
   let coverHref = '';
   const manifest = pack.manifest;
-  if (coverId && manifest && manifest.item) {
-    let items = manifest.item;
-    if (!Array.isArray(items)) {
-      items = [items];
+  if (manifest) {
+    const items = Array.isArray(manifest.item)
+      ? manifest.item
+      : manifest.item
+        ? [manifest.item]
+        : [];
+
+    // Check if coverId is a valid ID or href
+    const coverItem = items.find(
+      (itm: any) =>
+        itm['@_id'] === coverId ||
+        itm['@_href'] === coverId ||
+        itm['@_properties']?.includes('cover')
+    );
+
+    if (coverItem) {
+      coverHref = coverItem['@_href'] || '';
     }
-    const coverItem = items.find((itm: any) => itm['@_id'] === coverId);
-    coverHref = coverItem ? coverItem['@_href'] : '';
   }
 
-  // Extract cover image and save locally (if available)
+  // If no coverHref is found, use the first image file as the cover
   let localCoverPath = '';
   if (coverHref) {
     const coverFileFullPath = rootDir + coverHref;
     const coverFile = zip.file(coverFileFullPath);
     if (coverFile) {
       const coverBase64 = await coverFile.async('base64');
+      const ext = coverHref.split('.').pop() || 'jpg';
       const now = Date.now();
-      const coverExt = coverHref.split('.').pop() || 'jpg';
-      localCoverPath = `${localCoversDir}cover_${now}.${coverExt}`;
+      localCoverPath = `${localCoversDir}cover_${now}.${ext}`;
       await FileSystem.writeAsStringAsync(localCoverPath, coverBase64, {
         encoding: FileSystem.EncodingType.Base64,
       });
@@ -125,7 +168,7 @@ export async function ParseAndSaveEpub(epubPath: string): Promise<string> {
   // Write parsed data into WatermelonDB
   let newBookId = '';
   await database.write(async () => {
-    // 创建书籍
+    // Create a new book record in the database
     const newBook = await database.collections
       .get<Book>('books')
       .create((book) => {
@@ -140,81 +183,102 @@ export async function ParseAndSaveEpub(epubPath: string): Promise<string> {
 
     newBookId = newBook.id;
 
-    // 尝试解析 nav 目录并存入 chapters 表
-const manifestItems = Array.isArray(pack.manifest.item)
-  ? pack.manifest.item
-  : [pack.manifest.item];
+    // Create a new chapter record for the book
+    const manifestItems = Array.isArray(pack.manifest.item)
+    ? pack.manifest.item
+    : [pack.manifest.item];
 
-// 2. 多策略定位导航文件
-let navItem: any =
-  // EPUB3 nav.xhtml
-  manifestItems.find((it: any) =>
-    it['@_properties']?.split(' ').includes('nav')
-  ) ||
-  // EPUB2 toc.ncx
-  manifestItems.find((it: any) =>
-    it['@_media-type'] === 'application/x-dtbncx+xml'
-  ) ||
-  // 最后兜底：id 或 href 含 toc 或 nav
-  manifestItems.find((it: any) =>
-    /(nav|toc)\.(xhtml|xml|ncx)$/.test(it['@_href'])
-  );
+    // Find the first item with a media type of "application/xhtml+xml"
+    let navItem: any =
+      // EPUB3 nav.xhtml
+      manifestItems.find((it: any) =>
+        it['@_properties']?.split(' ').includes('nav')
+      ) ||
+      // EPUB2 toc.ncx
+      manifestItems.find(
+        (it: any) => it['@_media-type'] === 'application/x-dtbncx+xml'
+      ) ||
+      // includes nav.xhtml or toc.xhtml
+      manifestItems.find((it: any) =>
+        /(nav|toc)\.(xhtml|xml|ncx)$/i.test(it['@_href'])
+      );
 
-if (navItem && navItem['@_href']) {
-  const navPath = rootDir + navItem['@_href'];
-  const navFile = zip.file(navPath);
+    if (navItem) {
+      const navPath = rootDir + navItem['@_href'];
+      const navFile = zip.file(navPath);
+      if (navFile) {
+        const text = await navFile.async('text');
+        const isNCX =
+          navItem['@_media-type'] === 'application/x-dtbncx+xml';
 
-  if (navFile) {
-    const text = await navFile.async('text');
+        if (isNCX) {
+          /* ---------- EPUB2 (.ncx) ---------- */
+          const ncxObj = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: '@_',
+          }).parse(text);
+          const navPoints = ncxObj?.ncx?.navMap?.navPoint ?? [];
+          const points = Array.isArray(navPoints) ? navPoints : [navPoints];
 
-    if (navItem['@_media-type'] === 'application/x-dtbncx+xml') {
-      // —— EPUB2 .ncx 解析 ——  
-      const ncxParser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
-      const ncxObj = ncxParser.parse(text);
-      const navPoints = ncxObj.ncx.navMap.navPoint;
-      const points = Array.isArray(navPoints) ? navPoints : [navPoints];
+          let order = 0;
+          for (const p of points) {
+            const label = p.navLabel.text;
+            const src  = p.content['@_src'];
+            if (!src) continue;
 
-      let order = 0;
-      for (const pt of points) {
-        const label = pt.navLabel.text;
-        const contentSrc = pt.content['@_src'];
-        await database.collections.get<Chapter>('chapters').create((ch: any) => {
-          ch.title = String(label).trim();
-          ch.href  = contentSrc;
-          ch.order = order++;
-          ch._raw.book_id = newBook.id;
-        });
-      }
-    } else {
-      // —— EPUB3 .xhtml nav 解析 ——  
-      const navParser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
-      const navObj = navParser.parse(text);
-      // 取出 <nav> → <ol> → <li>
-      const navList = navObj.html.body.nav.ol.li;
-      const entries = Array.isArray(navList) ? navList : [navList];
+            // If src is a relative path, prepend the rootDir
+            const fullHref = (rootDir + src)
+              .replace(/\.htm\.html$/i, '.htm')
+              .replace(/\.html\.html$/i, '.html');
+            await database.collections
+              .get<Chapter>('chapters')
+              .create((ch) => {
+                ch.bookId = newBookId;
+                ch.title   = String(label).trim();
+                ch.href    = fullHref;
+                ch.order   = order++;
+              });
+          }
+        } else {
+          /* ---------- EPUB3 (<nav> in .xhtml) ---------- */
+          const navObj = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: '@_',
+          }).parse(text);
 
-      let order = 0;
-      for (const entry of entries) {
-        const a = entry.a;
-        if (!a || !a['@_href']) continue;
-        const titleText = typeof a['#text'] === 'string'
-          ? a['#text']
-          : Array.isArray(a['#text'])
-          ? a['#text'][0]
-          : '';
-        const href = a['@_href'];
+          const liNodes = navObj?.html?.body?.nav?.ol?.li ?? [];
+          const entries = Array.isArray(liNodes) ? liNodes : [liNodes];
 
-        await database.collections.get<Chapter>('chapters').create((ch: any) => {
-          ch.title = titleText.trim();
-          ch.href  = href;
-          ch.order = order++;
-          ch._raw.book_id = newBook.id;
-        });
+          let order = 0;
+          for (const li of entries) {
+            const anchor = li.a;
+            if (!anchor || !anchor['@_href']) continue;
+
+            const titleText =
+              typeof anchor['#text'] === 'string'
+                ? anchor['#text']
+                : Array.isArray(anchor['#text'])
+                ? anchor['#text'][0]
+                : '';
+
+            const relativeHref = anchor['@_href'];
+            const fullHref = (rootDir + relativeHref)
+              .replace(/\.htm\.html$/i, '.htm')
+              .replace(/\.html\.html$/i, '.html');
+
+            await database.collections
+              .get<Chapter>('chapters')
+              .create((ch) => {
+                ch.bookId = newBookId;
+                ch.title   = String(titleText).trim();
+                ch.href    = fullHref;
+                ch.order   = order++;
+              });
+          }
+        }
       }
     }
-  }
-}
-  });
+    });
 
   console.log(` Successfully parsed and stored: ${title} by ${author}`);
   return newBookId;

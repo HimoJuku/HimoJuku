@@ -172,7 +172,7 @@ export default function Footer({
           ]}
         />
         <IconButton
-          icon="white-balance-sunny"
+          icon="theme-light-dark"
           size={24}
           iconColor={colors.onSurface}
           onPress={onToggleTheme}
