@@ -24,7 +24,7 @@ export default function ReaderPage() {
   const [headerFooterVisible, setHeaderFooterVisible] = useState(false);
   // Font picker state
   const [fontPickerVisible, setFontPickerVisible] = useState(false);
-  const [fontSize, setFontSize] = useState(16);
+  const [fontSize, setFontSize] = useState(100);
   const [lineHeight, setLineHeight] = useState(1.5);
   // Settings state
   const [settingsVisible, setSettingsVisible] = useState(false);
@@ -33,9 +33,8 @@ export default function ReaderPage() {
   const [flipSwipe, setFlipSwipe] = useState(false);
 
   const { colors } = useTheme();
-  const { currentLocation, totalLocations } = useReader();
+  const { currentLocation, totalLocations, changeFontSize } = useReader();
   const [currentTheme, setCurrentTheme] = useState(Themes.LIGHT);
-  const [loadingTheme, setLoadingTheme] = useState(true);
   const toggleTheme = () => {
     setCurrentTheme(prev => 
       prev === Themes.DARK ? Themes.LIGHT : Themes.DARK
@@ -84,9 +83,14 @@ export default function ReaderPage() {
     setSettingsVisible(v => !v);
     setFontPickerVisible(false);
   };
-  // TODO: Modify the font size
-  const handleChangeFontSize = (size: number) => {
-    setFontSize(size);
+  // Modify the font size
+  const handleChangeFontSize = (delta: number) => {
+    setFontSize(prev => {
+      const newSize = Math.max(50, Math.min(200, prev + delta)); // 限制在 50%-200%
+      // 调用 epub 实例方法（假设通过 useReader 获取）
+      changeFontSize((newSize / 100).toString()); // 转换为缩放比例
+      return newSize;
+    });
   };
   // TODO: Modify the line height
   const handleChangeLineHeight = (height: number) => {
