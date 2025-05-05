@@ -2,10 +2,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Search , {SearchByAuthor, SearchByTitle} from '@/functions/searchBooks';
 import Book from '@/db/models/books';
 import React, { useState, useEffect } from 'react';
-import { ActivityIndicator, Text, Card, Chip, Button, Avatar } from 'react-native-paper';
+import { useTheme, ActivityIndicator, Text, Card, Chip, Button, Avatar } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { View, StyleSheet, FlatList, RefreshControl, Image } from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl, Image} from 'react-native';
 import { searchBy } from '@/constants/search';
+import { color } from 'bun';
 
 /**
  * SearchScreen
@@ -69,7 +70,7 @@ export default function SearchScreen() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1}}>
             {loading && <ActivityIndicator size="large" color="#0000ff" />}
             {/* ========== Choose Search Filter ========== */}
             <View style={styles.chipContainer}>
@@ -78,7 +79,8 @@ export default function SearchScreen() {
                         setSearchType({ shown: 'All' })
                     }
                     style={styles.chip}
-                    selected={searchType.shown === 'All'}>
+                    mode = {(searchType.shown === 'All') ? "flat": "outlined"}
+                    >
                         <Text style={styles.chipText}>All</Text>
                     </Chip>
                 </View>
@@ -88,7 +90,7 @@ export default function SearchScreen() {
 
                     }
                     style={styles.chip}
-                    selected={searchType.shown === 'Title'}
+                    mode = {(searchType.shown === 'Title') ? "flat": "outlined"}
                     >
                         <Text style={styles.chipText}>Title</Text>
                     </Chip>
@@ -98,7 +100,7 @@ export default function SearchScreen() {
                         setSearchType({ shown: 'Author' })
                     }
                     style={styles.chip}
-                    selected={searchType.shown === 'Author'}
+                    mode = {(searchType.shown === 'Author') ? "flat": "outlined"}
                     >
                         <Text style={styles.chipText}>Author</Text>
                     </Chip>

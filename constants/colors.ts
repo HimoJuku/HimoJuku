@@ -22,7 +22,7 @@ export const lightColors =   {
       "onError": "rgb(255, 255, 255)",
       "errorContainer": "rgb(255, 218, 214)",
       "onErrorContainer": "rgb(65, 0, 2)",
-      "background": "rgb(255, 251, 255)",
+      "background": "rgb(255, 248, 247)",
       "onBackground": "rgb(32, 26, 27)",
       "surface": "rgb(255, 248, 247)",
       "onSurface": "rgb(32, 26, 27)",
