@@ -8,10 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { File } from 'expo-file-system/next';
-import {
-  Reader,
-  useReader,
-} from '@himojuku/epubjs-react-native';
+import { Reader, useReader, Themes} from '@himojuku/epubjs-react-native';
 import { useFileSystem } from '@epubjs-react-native/expo-file-system';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from 'react-native-paper';
@@ -20,6 +17,8 @@ import Header from '@/app/reader/Header';
 import Footer from '@/app/reader/Footer';
 import TOC from '@/app/reader/TOC';
 import { readingDirections, Typesetting } from '@/constants/settings';
+
+
 export default function ReaderPage() {
   const { path, bookId } = useLocalSearchParams<{ path: string; bookId: string }>();
   const [loading, setLoading] = useState(true);
@@ -28,7 +27,7 @@ export default function ReaderPage() {
   const [headerFooterVisible, setHeaderFooterVisible] = useState(false);
   // Font picker state
   const [fontPickerVisible, setFontPickerVisible] = useState(false);
-  const [fontSize, setFontSize] = useState(16);
+  const [fontSize, setFontSize] = useState(100);
   const [lineHeight, setLineHeight] = useState(1.5);
   // Settings state
   const [settingsVisible, setSettingsVisible] = useState(false);
@@ -40,10 +39,17 @@ export default function ReaderPage() {
   const [flipSwipe, setFlipSwipe] = useState(false);
 
   const { colors } = useTheme();
-  const { currentLocation, totalLocations, changeTypesetting, goToLocation } = useReader();
+  const { currentLocation, totalLocations, changeFontSize, changeTypesetting, goToLocation, changeTheme } = useReader();
   const page = currentLocation?.start.location ?? 0;
   const [tocVisible, setTocVisible] = useState(false);
 
+  const [currentTheme, setCurrentTheme] = useState(Themes.LIGHT);
+  const toggleTheme = () => {
+    console.log('Toggle theme:', currentTheme === Themes.DARK ? 'Light' : 'Dark');
+    // Toggle between light and dark themes
+    setCurrentTheme(currentTheme === Themes.DARK ? Themes.LIGHT : Themes.DARK);
+    changeTheme(currentTheme === Themes.DARK ? Themes.LIGHT : Themes.DARK);
+  };
   useEffect(() => {
     (async () => {
       if (!path) {
@@ -66,6 +72,7 @@ export default function ReaderPage() {
         setLoading(false);
       }
     })();
+    
   }, [path]);
 
   // Set the header/footer visibility
@@ -86,9 +93,15 @@ export default function ReaderPage() {
     setSettingsVisible(v => !v);
     setFontPickerVisible(false);
   };
-  // TODO: Modify the font size
-  const handleChangeFontSize = (size: number) => {
-    setFontSize(size);
+  // Modify the font size
+  const handleChangeFontSize = (delta: number) => {
+    setFontSize(prev => {
+      const newSize = Math.max(50, Math.min(200, prev + delta)); // 限制在 50%-200%
+      console.log('Font size changed to:', newSize);
+      // 调用 epub 实例方法（假设通过 useReader 获取）
+      changeFontSize(newSize+"%"); // 转换为缩放比例
+      return newSize;
+    });
   };
   // TODO: Modify the line height
   const handleChangeLineHeight = (height: number) => {
@@ -184,7 +197,7 @@ export default function ReaderPage() {
                     onChangeFontSize={handleChangeFontSize}
                     lineHeight={lineHeight}
                     onChangeLineHeight={handleChangeLineHeight}
-                    onToggleTheme={() => { } }
+                    onToggleTheme={toggleTheme}
                     settingsVisible={settingsVisible}
                     onToggleSettings={toggleSettings}
                     onChangeTypesetting={handleChangeTypesetting}
@@ -225,7 +238,6 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 10,
     letterSpacing: 1,
-    color: '#000',
   },
   centerTouchArea: {
     position: 'absolute',
