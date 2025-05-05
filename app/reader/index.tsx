@@ -14,7 +14,8 @@ import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from 'react-native-paper';
 import Header from '@/app/reader/Header';
 import Footer from '@/app/reader/Footer';
-import { typesettingDirections, readingDirections } from '@/constants/settings';
+import { readingDirections, Typesetting } from '@/constants/settings';
+
 
 export default function ReaderPage() {
   const { path } = useLocalSearchParams<{ path: string }>();
@@ -28,12 +29,15 @@ export default function ReaderPage() {
   const [lineHeight, setLineHeight] = useState(1.5);
   // Settings state
   const [settingsVisible, setSettingsVisible] = useState(false);
-  const [settingsTypesettingDirection, setSettingsTypesettingDirection] = useState(typesettingDirections.horizontal);
+  const [settingsTypesetting, setSettingsTypesetting] = useState<Typesetting>({
+    writingMode: 'horizontal-tb',
+    textOrientation: 'mixed'
+  });
   const [settingsReadingDirection, setSettingsReadingDirection] = useState(readingDirections.ltr);
   const [flipSwipe, setFlipSwipe] = useState(false);
 
   const { colors } = useTheme();
-  const { currentLocation, totalLocations, changeFontSize } = useReader();
+  const { currentLocation, totalLocations, changeFontSize, changeTypesetting } = useReader();
   const [currentTheme, setCurrentTheme] = useState(Themes.LIGHT);
   const toggleTheme = () => {
     setCurrentTheme(prev => 
@@ -97,8 +101,9 @@ export default function ReaderPage() {
     setLineHeight(height);
   };
   // TODO: Modify the typesetting direction
-  const handleChangeTypesettingDirection = (direction: string) => {
-    setSettingsTypesettingDirection(direction);
+  const handleChangeTypesetting = (direction: Typesetting) => {
+    setSettingsTypesetting(direction);
+    changeTypesetting(direction);
   };
   // Modify the reading direction
   const handleChangeReadingDirection = (direction: string) => {
@@ -126,7 +131,6 @@ export default function ReaderPage() {
   const page = currentLocation?.start.location ?? 0;
 
   return (
-    <ReaderProvider>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <View style={{ flex: 1 }}>
           {/* EPUB 阅读器 */}
@@ -164,15 +168,15 @@ export default function ReaderPage() {
                   onOpenTOC={() => { } }
                   fontPickerVisible={fontPickerVisible}
                   onToggleFontPicker={onToggleFontPicker}
-                  settingsVisible={settingsVisible}
                   fontSize={fontSize}
                   onChangeFontSize={handleChangeFontSize}
                   lineHeight={lineHeight}
                   onChangeLineHeight={handleChangeLineHeight}
                   onToggleTheme={toggleTheme}
+                  settingsVisible={settingsVisible}
                   onToggleSettings={toggleSettings}
-                  onChangeTypesettingDirection={handleChangeTypesettingDirection}
-                  typesettingDirections={settingsTypesettingDirection}
+                  onChangeTypesetting={handleChangeTypesetting}
+                  typesetting={settingsTypesetting}
                   onChangeReadingDirection={handleChangeReadingDirection}
                   readingDirections={settingsReadingDirection}
                   />
@@ -181,7 +185,6 @@ export default function ReaderPage() {
           )}
         </View>
       </SafeAreaView>
-    </ReaderProvider>
   );
 }
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { IconButton, useTheme, Card, Text } from 'react-native-paper';
+import { Typesetting } from '@/constants/settings';
 export interface FooterProps {
   onOpenTOC?: () => void;
   fontPickerVisible: boolean;
@@ -12,8 +13,8 @@ export interface FooterProps {
   lineHeight?: number;
   onChangeLineHeight?: (height: number) => void;
   onToggleSettings: () => void;
-  onChangeTypesettingDirection?: (direction: string) => void;
-  typesettingDirections?: string;
+  onChangeTypesetting?: (direction:Typesetting) => void;
+  typesetting?: Typesetting;
   onChangeReadingDirection?: (direction: string) => void;
   readingDirections?: string;
 }
@@ -29,8 +30,11 @@ export default function Footer({
   onToggleTheme = () => {},
   settingsVisible = false,
   onToggleSettings = () => {},
-  onChangeTypesettingDirection = () => {},
-  typesettingDirections = 'horizontal',
+  onChangeTypesetting = () => {},
+  typesetting = {
+    writingMode: 'horizontal-tb',
+    textOrientation: 'mixed',
+  },
   onChangeReadingDirection = () => {},
   readingDirections = 'left-to-right',
 }: FooterProps) {
@@ -87,12 +91,34 @@ export default function Footer({
           <Card.Content>
             <Text variant="titleMedium" style={styles.settingsTitle}>Reader Settings</Text>
             <View style={styles.settingsRow}>
-              <Text>Display Direction: {typesettingDirections}</Text>
+              <Text>Typesetting: {typesetting.writingMode}</Text>
               <View style={styles.buttonsRow}>
                 <IconButton
-                  icon={typesettingDirections === 'horizontal' ? 'book-open' : 'book-open-outline'}
+                  icon="book-open-outline"
                   size={20}
-                  onPress={() => onChangeTypesettingDirection(typesettingDirections === 'horizontal' ? 'vertical' : 'horizontal')}
+                  onPress={() => onChangeTypesetting(
+                    { writingMode: 'horizontal-tb',
+                    textOrientation: 'mixed',
+                  })}
+                  disabled={typesetting.writingMode === 'horizontal-tb'}
+                />
+                <IconButton
+                  icon="book-open-page-variant"
+                  size={20}
+                  onPress={() => onChangeTypesetting({
+                    writingMode: 'vertical-rl',
+                    textOrientation: 'upright',
+                  })}
+                  disabled={typesetting.writingMode === 'vertical-rl'}
+                />
+                <IconButton
+                  icon="book-open-page-variant-outline"
+                  size={20}
+                  onPress={() => onChangeTypesetting({
+                    writingMode: 'vertical-lr',
+                    textOrientation: 'upright',
+                  })}
+                  disabled={typesetting.writingMode === 'vertical-lr'}
                 />
               </View>
             </View>
