@@ -100,7 +100,7 @@ export default function Footer({
                     { writingMode: 'horizontal-tb',
                     textOrientation: 'mixed',
                   })}
-                  disabled={typesetting.writingMode === 'horizontal-tb'}
+                  selected={typesetting.writingMode === 'horizontal-tb'}
                 />
                 <IconButton
                   icon="book-open-page-variant"
@@ -109,7 +109,7 @@ export default function Footer({
                     writingMode: 'vertical-rl',
                     textOrientation: 'upright',
                   })}
-                  disabled={typesetting.writingMode === 'vertical-rl'}
+                  selected={typesetting.writingMode === 'vertical-rl'}
                 />
                 <IconButton
                   icon="book-open-page-variant-outline"
@@ -118,7 +118,7 @@ export default function Footer({
                     writingMode: 'vertical-lr',
                     textOrientation: 'upright',
                   })}
-                  disabled={typesetting.writingMode === 'vertical-lr'}
+                  selected={typesetting.writingMode === 'vertical-lr'}
                 />
               </View>
             </View>
@@ -129,13 +129,13 @@ export default function Footer({
                   icon="book-arrow-left-outline"
                   size={20}
                   onPress={() => onChangeReadingDirection(readingDirections === 'right-to-left' ? 'left-to-right' : 'right-to-left')}
-                  disabled={readingDirections === 'right-to-left'}
+                  selected={readingDirections === 'right-to-left'}
                 />
                 <IconButton
                   icon="book-arrow-right-outline"
                   size={20}
                   onPress={() => onChangeReadingDirection(readingDirections === 'left-to-right' ? 'right-to-left' : 'left-to-right')}
-                  disabled={readingDirections === 'left-to-right'}
+                  selected={readingDirections === 'left-to-right'}
                 />
               </View>
             </View>

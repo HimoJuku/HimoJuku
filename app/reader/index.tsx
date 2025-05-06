@@ -82,6 +82,14 @@ export default function ReaderPage() {
     if (headerFooterVisible) {
       setSettingsVisible(false);
     }
+  }
+  const showHeaderFooter = () => {
+    setHeaderFooterVisible(true);
+    setSettingsVisible(false);
+  }
+  const hideHeaderFooter = () => {
+    setHeaderFooterVisible(false);
+    setSettingsVisible(false);
   };
   // Set the font picker visibility
   const onToggleFontPicker = () => {
@@ -177,7 +185,12 @@ export default function ReaderPage() {
             </View>
   
               {/* Touch area to toggle header/footer */}
-          <Pressable style={styles.centerTouchArea} onPress={toggleHeaderFooter} />
+          <Pressable 
+            style={styles.centerTouchArea} 
+            onPress={toggleHeaderFooter} 
+            //onLongPress={showHeaderFooter} 
+            delayLongPress={500} // 500ms long press to show header/footer
+            />
 
             {/* Header & Footer */}
             {headerFooterVisible && (
@@ -241,8 +254,8 @@ const styles = StyleSheet.create({
   },
   centerTouchArea: {
     position: 'absolute',
-    left: '20%',
-    right: '20%',
+    left: '30%',
+    right: '30%',
     top: '30%',
     bottom: '30%',
     backgroundColor: 'transparent',
