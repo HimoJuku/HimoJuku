@@ -6,7 +6,7 @@ import { useTheme, ActivityIndicator, Text, Card, Chip, Button, Avatar } from 'r
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { View, StyleSheet, FlatList, RefreshControl, Image} from 'react-native';
 import { searchBy } from '@/constants/search';
-import { color } from 'bun';
+import { openReader } from '@/functions/readerFunction';
 
 /**
  * SearchScreen
@@ -23,7 +23,6 @@ export default function SearchScreen() {
     // State to manage the search type (All, Title, Author)
     const [searchType, setSearchType] = useState<searchBy>({ shown: 'All' });
     const theme = useTheme();
-    const router = useRouter();
     // Execute the search function when the query changes
     useEffect(() => {
         if (query) {
@@ -55,18 +54,6 @@ export default function SearchScreen() {
         } finally {
             setLoading(false);
         }
-    };
-
-      //Open reader method
-    const openReader = (path: string) => {
-        router.push(
-        {
-            pathname: '/reader',
-            params: {
-            path: path
-            }
-        }
-        );
     };
 
     return (
@@ -123,7 +110,7 @@ export default function SearchScreen() {
                     renderItem={({ item }) => (
                         <Card
                         elevation={0}
-                        onPress={() => openReader(item.filePath)}
+                        onPress={() => openReader(item.filePath, item.id)}
                         style={styles.bookContainer}
                         >
                             <Image
@@ -165,7 +152,7 @@ export default function SearchScreen() {
                         renderItem={({ item }) => (
                             <Card style={styles.avatar}
                                 elevation={0}
-                                onPress={() => openReader(item.filePath)}>
+                                onPress={() => openReader(item.filePath, item.id)}>
                                 <Avatar.Icon
                                     size={100}
                                     icon="account"

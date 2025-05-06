@@ -22,6 +22,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { database } from '@/db';
 import Book from '@/db/models/books';
 import * as Sort from '@/functions/sort';
+import { openReader } from '@/functions/readerFunction';
 
 type DrawerParamList = {
   bookShelf: undefined;
@@ -38,7 +39,6 @@ export default function BookshelfScreen() {
   const [sortMethod, setSortMethod] = React.useState<Sort.SortMethod>({method: 'author', desc: false});
   const [sortMenu , setSortMenu] = React.useState(false);
   const theme = useTheme();
-  const router = useRouter();
 
   useEffect(() => {
     const sub = database.get<Book>('books').query().observe()
@@ -68,17 +68,6 @@ export default function BookshelfScreen() {
     console.log('[onRefresh] Data received: ',fresh.map((b) => b.id));
     onSort();
     setRefreshing(false);
-  };
-
-  //Open reader method
-  const openReader = (path: string, bookId: string) => {
-    router.push({
-      pathname: '/reader',
-      params: {
-        path,
-        bookId,
-      },
-    });
   };
 
   const styles = StyleSheet.create({
