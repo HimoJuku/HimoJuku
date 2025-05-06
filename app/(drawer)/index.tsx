@@ -20,6 +20,7 @@ import { database } from '@/db';
 import Book from '@/db/models/books';
 import * as Sort from '@/functions/sort';
 import SortMenu from '@/components/SortMenu';
+import { openReader } from '@/functions/readerFunction';
 
 export default function BookshelfScreen() {
   const [books, setBooks] = React.useState<Book[]>([]);
@@ -61,33 +62,7 @@ export default function BookshelfScreen() {
     setRefreshing(false);
   };
 
-  //Open reader method
-  const openReader = (path: string, bookId: string) => {
-    router.push({
-      pathname: '/reader',
-      params: {
-        path,
-        bookId,
-      },
-    });
-  };
-
-  const styles = StyleSheet.create({
-    center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginBottom: '10%'},
-    card: {
-      alignItems: 'center',
-      flexDirection: 'row',
-    },
-    cover: {
-      height: '100%',
-      aspectRatio: 0.72,
-      borderRadius: 4,
-      backgroundColor: '#CCC',
-    },
-    title: { textAlign: 'left', textAlignVertical: 'top'},
-    author: {fontSize: 10, color: theme.colors.outline, marginTop: 2},
-    menuItem: {width: '100%'},
-  });
+  const router = useRouter();
 
   if (books.length === 0) {
     return (
@@ -126,7 +101,7 @@ export default function BookshelfScreen() {
         renderItem={({ item }) => (
           <Card
             elevation={0}
-            onPress={() => openReader(item.filePath, item.id)}
+            onPress={() => openReader(item.filePath, item.id, router)}
             onLongPress={() => {
               setCurrentBook(item);
               setBookPanelVisible(true);

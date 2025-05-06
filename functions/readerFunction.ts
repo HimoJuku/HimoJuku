@@ -1,5 +1,5 @@
 import {
-    useRouter
+    Router,
 } from 'expo-router';
 
 /**
@@ -9,9 +9,9 @@ import {
  *
  * @param path - The local file path of the book (e.g. "/data/.../books/myBook.epub")
  * @param bookId - The unique identifier of the book
+ * @param router - The router object from expo-router
  */
-export function openReader(path: string, bookId: string):boolean{
-    const router = useRouter();
+export function openReader(path: string, bookId: string, router: Router):boolean{
     router.push({
         pathname: '/reader',
         params: {

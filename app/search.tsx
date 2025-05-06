@@ -23,6 +23,7 @@ export default function SearchScreen() {
     // State to manage the search type (All, Title, Author)
     const [searchType, setSearchType] = useState<searchBy>({ shown: 'All' });
     const theme = useTheme();
+    const router = useRouter();
     // Execute the search function when the query changes
     useEffect(() => {
         if (query) {
@@ -110,7 +111,7 @@ export default function SearchScreen() {
                     renderItem={({ item }) => (
                         <Card
                         elevation={0}
-                        onPress={() => openReader(item.filePath, item.id)}
+                        onPress={() => openReader(item.filePath, item.id, router)}
                         style={styles.bookContainer}
                         >
                             <Image
@@ -152,7 +153,7 @@ export default function SearchScreen() {
                         renderItem={({ item }) => (
                             <Card style={styles.avatar}
                                 elevation={0}
-                                onPress={() => openReader(item.filePath, item.id)}>
+                                onPress={() => openReader(item.filePath, item.id, router)}>
                                 <Avatar.Icon
                                     size={100}
                                     icon="account"
