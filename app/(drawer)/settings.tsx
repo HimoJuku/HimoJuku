@@ -19,7 +19,7 @@ const SettingsScreen = () => {
   const { colors } = useTheme();
   const [themeMenuVisible, setThemeMenuVisible] = React.useState(false);
   const [languageMenuVisible, setLanguageMenuVisible] = React.useState(false);
-  const [selectedLanguage, setSelectedLanguage] = React.useState('中文');
+  const [selectedLanguage, setSelectedLanguage] = React.useState('English');
 
   /**
    * Subscribe to settings changes

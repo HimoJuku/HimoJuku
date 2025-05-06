@@ -47,26 +47,6 @@ export default function Header({
       />
 
       <View style={styles.actions}>
-        <IconButton
-          icon="magnify"
-          size={20}
-          iconColor={colors.onSurface}
-          onPress={onOpenSearch}
-        />
-
-        <IconButton
-          icon={isBookmarked ? 'bookmark' : 'bookmark-outline'}
-          size={20}
-          iconColor={colors.onSurface}
-          onPress={handleToggleBookmark}
-        />
-
-        <IconButton
-          icon="bookmark-multiple-outline"
-          size={20}
-          iconColor={colors.onSurface}
-          onPress={onOpenBookmarksList}
-        />
       </View>
     </View>
   );

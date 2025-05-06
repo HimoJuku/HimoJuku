@@ -65,23 +65,6 @@ export default function Footer({
                 />
               </View>
             </View>
-            <View style={styles.settingsRow}>
-              <Text>Line spacing: {lineHeight.toFixed(1)}</Text>
-              <View style={styles.buttonsRow}>
-                <IconButton
-                  icon="minus"
-                  size={20}
-                  onPress={() => onChangeLineHeight(lineHeight - 0.1)}
-                  disabled={lineHeight <= 1.0}
-                />
-                <IconButton
-                  icon="plus"
-                  size={20}
-                  onPress={() => onChangeLineHeight(lineHeight + 0.1)}
-                  disabled={lineHeight >= 2.0}
-                />
-              </View>
-            </View>
           </Card.Content>
         </Card>
       )}
