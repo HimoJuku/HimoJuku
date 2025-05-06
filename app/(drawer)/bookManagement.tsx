@@ -122,7 +122,7 @@ export default function BookManagementScreen() {
     };
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.title]}>书籍管理</Text>
+      <Text style={[styles.title]}>Book Management</Text>
       <Button
         mode="contained"
         onPress={handleImportBook}
@@ -130,11 +130,11 @@ export default function BookManagementScreen() {
         loading={loading}
         disabled={loading}
       >
-        导入书籍
+        Import Book
       </Button>
       <View style={styles.bookList}>
         {books.length === 0 ? (
-          <Text style={{ color: colors.onBackground }}>暂无书籍</Text>
+          <Text style={{ color: colors.onBackground }}>No books yet</Text>
         ) : (
             books.map((book, index) => (
               <View key={index} style={styles.bookItem}>
@@ -145,10 +145,9 @@ export default function BookManagementScreen() {
                 <Button
                   mode="contained"
                   onPress={() => handleOpenReader(book.uri)}
-
                   style={{ marginTop: 8 }}
                 >
-                  阅读此书
+                  Read this book
                 </Button>
               </View>
             )

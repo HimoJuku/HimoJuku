@@ -25,14 +25,12 @@ export default function DatabaseTest() {
     try {
       setLoading(true);
 
-      /** 读取所有书籍 */
       const fetchedBooks = await database
         .get<Book>('books')
         .query()
         .fetch();
       setBooks(fetchedBooks);
 
-      /** 针对每本书读取章节 */
       const chapterResults: ChapterMap = {};
 
       for (const book of fetchedBooks) {
@@ -40,7 +38,7 @@ export default function DatabaseTest() {
           .get<Chapter>('chapters')
           .query(
             Q.where('book_id', book.id),
-            Q.sortBy('order', Q.asc)       // ✅ 用 Q.asc
+            Q.sortBy('order', Q.asc)     
           )
           .fetch();
 
@@ -72,7 +70,7 @@ export default function DatabaseTest() {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" />
-        <Text style={styles.message}>加载数据库数据…</Text>
+        <Text style={styles.message}>Loading database data…</Text>
       </View>
     );
   }
@@ -80,40 +78,40 @@ export default function DatabaseTest() {
   if (error) {
     return (
       <View style={styles.center}>
-        <Text style={styles.error}>数据库测试出错: {error}</Text>
+        <Text style={styles.error}>Database test error: {error}</Text>
       </View>
     );
   }
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>数据库测试 ‑ 书籍 & 章节</Text>
+      <Text style={styles.title}>Database Test – Books & Chapters</Text>
 
       {books.length === 0 ? (
-        <Text style={styles.emptyText}>暂无书籍记录</Text>
+        <Text style={styles.emptyText}>No book records</Text>
       ) : (
         books.map((book) => {
           const chs = chaptersMap[book.id] || [];
 
           return (
             <View key={book.id} style={styles.bookBlock}>
-              {/* 书籍信息 */}
+              {/* Book info */}
               <View style={styles.bookItem}>
-                <Text style={styles.bookTitle}>书名: {book.title}</Text>
-                <Text>作者: {book.author || '-'}</Text>
-                <Text>路径: {book.filePath}</Text>
-                <Text>导入: {new Date(book.importedAt).toLocaleString()}</Text>
+                <Text style={styles.bookTitle}>Title: {book.title}</Text>
+                <Text>Author: {book.author || '-'}</Text>
+                <Text>Path: {book.filePath}</Text>
+                <Text>Imported: {new Date(book.importedAt).toLocaleString()}</Text>
               </View>
 
-              {/* 章节预览 */}
+              {/* Chapter preview */}
               <View style={styles.chapterBlock}>
-                <Text style={styles.subtitle}>章节信息</Text>
+                <Text style={styles.subtitle}>Chapters</Text>
                 {chs.length === 0 ? (
-                  <Text style={styles.emptyText}>⚠️ 无章节数据</Text>
+                  <Text style={styles.emptyText}>⚠️ No chapter data</Text>
                 ) : (
                   <>
                     <Text style={styles.chapterCount}>
-                      共 {chs.length} 章，预览前 {Math.min(chs.length, 3)} 章：
+                      {chs.length} chapters total, showing first {Math.min(chs.length, 3)}:
                     </Text>
                     {chs.slice(0, 3).map((c, i) => (
                       <Text key={c.id} style={styles.chapterItem}>
@@ -133,7 +131,7 @@ export default function DatabaseTest() {
   );
 }
 
-/* ---------- 样式 ---------- */
+/* ---------- Styles ---------- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -104,10 +104,9 @@ export default function ReaderPage() {
   // Modify the font size
   const handleChangeFontSize = (delta: number) => {
     setFontSize(prev => {
-      const newSize = Math.max(50, Math.min(200, prev + delta)); // 限制在 50%-200%
+      const newSize = Math.max(50, Math.min(200, prev + delta)); 
       console.log('Font size changed to:', newSize);
-      // 调用 epub 实例方法（假设通过 useReader 获取）
-      changeFontSize(newSize+"%"); // 转换为缩放比例
+      changeFontSize(newSize+"%"); 
       return newSize;
     });
   };
