@@ -2,10 +2,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Search , {SearchByAuthor, SearchByTitle} from '@/functions/searchBooks';
 import Book from '@/db/models/books';
 import React, { useState, useEffect } from 'react';
-import { ActivityIndicator, Text, Card, Chip, Button, Avatar } from 'react-native-paper';
+import { useTheme, ActivityIndicator, Text, Card, Chip, Button, Avatar } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { View, StyleSheet, FlatList, RefreshControl, Image } from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl, Image} from 'react-native';
 import { searchBy } from '@/constants/search';
+import { color } from 'bun';
 
 /**
  * SearchScreen
@@ -15,11 +16,13 @@ import { searchBy } from '@/constants/search';
 export default function SearchScreen() {
     // Get the query from the search header params
     const { query } = useLocalSearchParams();
-    const [books, setBooks] = useState<Book[]>([]);
+    const [titleResults, setTitleResults] = useState<Book[]>([]);
+    const [authorResults, setAuthorResults] = useState<Book[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     // State to manage the search type (All, Title, Author)
     const [searchType, setSearchType] = useState<searchBy>({ shown: 'All' });
+    const theme = useTheme();
     const router = useRouter();
     // Execute the search function when the query changes
     useEffect(() => {
@@ -36,15 +39,16 @@ export default function SearchScreen() {
         setLoading(true);
         setError(null);
         try {
-            const result = searchType.shown === 'All' ? await Search(query as string)
-            : searchType.shown === 'Title' ? await SearchByTitle(query as string)
-            : await SearchByAuthor(query as string);
-            if (result && result.length > 0) {
-                setBooks(result);
-            } else {
-                setBooks([]);
-                setError('No results found');
+            const byTitle = await SearchByTitle(query as string);
+            const byAuthor = await SearchByAuthor(query as string);
+            setTitleResults(byTitle);
+            setAuthorResults(byAuthor);
+            /*
+            setBooks([...byTitle, ...byAuthor]);
+            if (books.length === 0) {
+                setError(`No results found for "${query}"`);
             }
+            */
         } catch (err) {
             setError('An error occurred while searching');
             console.error(err);
@@ -66,15 +70,17 @@ export default function SearchScreen() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
             {loading && <ActivityIndicator size="large" color="#0000ff" />}
+            {/* ========== Choose Search Filter ========== */}
             <View style={styles.chipContainer}>
                 <View style={styles.chipRowContainer}>
                     <Chip onPress={() =>
                         setSearchType({ shown: 'All' })
                     }
                     style={styles.chip}
-                    selected={searchType.shown === 'All'}>
+                    mode = {(searchType.shown === 'All') ? "flat": "outlined"}
+                    >
                         <Text style={styles.chipText}>All</Text>
                     </Chip>
                 </View>
@@ -84,7 +90,7 @@ export default function SearchScreen() {
 
                     }
                     style={styles.chip}
-                    selected={searchType.shown === 'Title'}
+                    mode = {(searchType.shown === 'Title') ? "flat": "outlined"}
                     >
                         <Text style={styles.chipText}>Title</Text>
                     </Chip>
@@ -94,13 +100,14 @@ export default function SearchScreen() {
                         setSearchType({ shown: 'Author' })
                     }
                     style={styles.chip}
-                    selected={searchType.shown === 'Author'}
+                    mode = {(searchType.shown === 'Author') ? "flat": "outlined"}
                     >
                         <Text style={styles.chipText}>Author</Text>
                     </Chip>
                 </View>
             </View>
-            { (searchType.shown === 'All' || searchType.shown === 'Title') &&
+            {/* ========== Title Search Result ========== */}
+            { (searchType.shown === 'All' || searchType.shown === 'Title') && (titleResults.length > 0) &&
             <View style={styles.titleContainer} >
                 <Button icon="arrow-right" mode="text" onPress={() => console.log('Pressed')}contentStyle={styles.title} labelStyle={{ fontSize: 20, verticalAlign:"bottom"}} >
                     <Text variant='headlineSmall'>With Title</Text>
@@ -111,7 +118,7 @@ export default function SearchScreen() {
                 <View style={styles.titleRowContainer}>
                     <FlatList style={{ flexDirection: 'row',flex: 1}}
                     horizontal={true}
-                    data={books}
+                    data={titleResults}
                     refreshControl={<RefreshControl refreshing={loading} />}
                     renderItem={({ item }) => (
                         <Card
@@ -140,7 +147,8 @@ export default function SearchScreen() {
                 </View>}
             </View>
             }
-            { (searchType.shown === 'All' || searchType.shown === 'Author') &&
+            {/* ========== Author Search Result ========== */}
+            { (searchType.shown === 'All' || searchType.shown === 'Author') && (authorResults.length > 0) &&
             <View style={styles.authorContainer}>
                 <Button icon="arrow-right" mode="text" onPress={() => console.log('Pressed')} contentStyle={styles.title} labelStyle={{ fontSize: 20, verticalAlign: "bottom" }}>
                     <Text variant='headlineSmall'>With Author</Text>
@@ -150,7 +158,7 @@ export default function SearchScreen() {
                 :
                 <View style={styles.authorRowContainer}>
                     <FlatList style={{ flexDirection: 'row',flex: 1}}
-                        data={books}
+                        data={authorResults}
                         horizontal={true}
                         keyExtractor={(b) => b.id}
                         refreshControl={<RefreshControl refreshing={loading} />}
@@ -225,10 +233,12 @@ const styles = StyleSheet.create({
     bookCover:{
         justifyContent: 'center',
         alignItems: 'center',
-        width:"100%",
         height: 200,
+        width: "100%",
+        resizeMode: 'cover',
     },
     bookTitle:{
+        minWidth: 130,
         fontWeight: 'bold',
         textAlign: 'center'
     },
