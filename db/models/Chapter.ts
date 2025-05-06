@@ -12,6 +12,5 @@ export default class Chapter extends Model {
   @field('order')   order!: number;
   @field('book_id') bookId!: string;
 
-  // 外键关联到 books 表
   @relation('books', 'book_id') book!: Book;
 }

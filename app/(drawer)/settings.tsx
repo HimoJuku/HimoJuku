@@ -113,14 +113,12 @@ const SettingsScreen = () => {
   return (
     <Surface style={[styles.container,{backgroundColor:colors.background}]}>
       <ScrollView  contentContainerStyle={styles.scrollContent}>
-        {/* 标题 */}
         <Text style={[styles.title, styles.header]} variant="headlineMedium">
           Settings
         </Text>
 
         <Divider />
 
-        {/* 主题设置 */}
         <List.Section style={styles.listSection}>
           <List.Subheader>Appearance</List.Subheader>
           <List.Item
@@ -154,7 +152,6 @@ const SettingsScreen = () => {
 
         <Divider />
 
-        {/* 语言设置 */}
         <List.Section style={styles.listSection}>
           <List.Subheader>Language</List.Subheader>
           <List.Item
@@ -186,7 +183,6 @@ const SettingsScreen = () => {
           />
         </List.Section>
 
-        {/* 版本信息 */}
         <List.Section style={styles.versionContainer}>
           <Divider />
           <Text style={styles.versionText} variant="bodySmall">
