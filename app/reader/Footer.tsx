@@ -95,6 +95,7 @@ export default function Footer({
               <View style={styles.buttonsRow}>
                 <IconButton
                   icon="book-open-outline"
+                  theme ={{ colors: { onSurfaceVariant: colors.onSurfaceDisabled } }}
                   size={20}
                   onPress={() => onChangeTypesetting(
                     { writingMode: 'horizontal-tb',
@@ -104,6 +105,7 @@ export default function Footer({
                 />
                 <IconButton
                   icon="book-open-page-variant"
+                  theme ={{ colors: { onSurfaceVariant: colors.onSurfaceDisabled } }}
                   size={20}
                   onPress={() => onChangeTypesetting({
                     writingMode: 'vertical-rl',
@@ -113,6 +115,7 @@ export default function Footer({
                 />
                 <IconButton
                   icon="book-open-page-variant-outline"
+                  theme ={{ colors: { onSurfaceVariant: colors.onSurfaceDisabled } }}
                   size={20}
                   onPress={() => onChangeTypesetting({
                     writingMode: 'vertical-lr',
@@ -127,12 +130,14 @@ export default function Footer({
               <View style={styles.buttonsRow}>
               <IconButton
                   icon="book-arrow-left-outline"
+                  theme ={{ colors: { onSurfaceVariant: colors.onSurfaceDisabled } }}
                   size={20}
                   onPress={() => onChangeReadingDirection(readingDirections === 'right-to-left' ? 'left-to-right' : 'right-to-left')}
                   selected={readingDirections === 'right-to-left'}
                 />
                 <IconButton
                   icon="book-arrow-right-outline"
+                  theme ={{ colors: { onSurfaceVariant: colors.onSurfaceDisabled } }}
                   size={20}
                   onPress={() => onChangeReadingDirection(readingDirections === 'left-to-right' ? 'right-to-left' : 'left-to-right')}
                   selected={readingDirections === 'left-to-right'}
