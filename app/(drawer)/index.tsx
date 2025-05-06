@@ -11,11 +11,11 @@ import {
   Text,
   useTheme,
   Card,
-  IconButton,
   Button,
   Menu,
   Divider,
-  SegmentedButtons,
+  Portal,
+  Modal,
 } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -23,20 +23,13 @@ import { database } from '@/db';
 import Book from '@/db/models/books';
 import * as Sort from '@/functions/sort';
 
-type DrawerParamList = {
-  bookShelf: undefined;
-  bookManagement: undefined;
-  settings: undefined;
-  reader: { path: string };
-  databaseTest: undefined;
-};
-
 export default function BookshelfScreen() {
   const [books, setBooks] = React.useState<Book[]>([]);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   //default sort method
   const [sortMethod, setSortMethod] = React.useState<Sort.SortMethod>({method: 'author', desc: false});
   const [sortMenu , setSortMenu] = React.useState(false);
+  const [panelVisible, setPanelVisible] = React.useState(false);
   const theme = useTheme();
   const router = useRouter();
 
@@ -81,23 +74,6 @@ export default function BookshelfScreen() {
     });
   };
 
-  const styles = StyleSheet.create({
-    center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginBottom: '10%'},
-    card: {
-      alignItems: 'center',
-      flexDirection: 'row',
-    },
-    cover: {
-      height: '100%',
-      aspectRatio: 0.72,
-      borderRadius: 4,
-      backgroundColor: '#CCC',
-    },
-    title: { textAlign: 'left', textAlignVertical: 'top'},
-    author: {fontSize: 10, color: theme.colors.outline, marginTop: 2},
-    menuItem: {width: '100%'},
-  });
-
   if (books.length === 0) {
     return (
       <Surface
@@ -116,11 +92,11 @@ export default function BookshelfScreen() {
     <Surface
       style={{
         flex: 1,
-        backgroundColor: theme.colors.surface, 
-      }} 
+        backgroundColor: theme.colors.surface,
+      }}
       elevation={0}
     >
-      //Tool Container
+      {/* Sort Menu */}
         <Menu
           anchor = {
             <View
@@ -209,7 +185,7 @@ export default function BookshelfScreen() {
             leadingIcon={
               (sortMethod.method === 'author')
               ? ()=>(
-                <MaterialIcons 
+                <MaterialIcons
                 name= {
                   sortMethod.desc
                   ? "arrow-upward"
@@ -242,7 +218,7 @@ export default function BookshelfScreen() {
             leadingIcon={
               (sortMethod.method === 'lastRead')
               ? ()=>(
-                <MaterialIcons 
+                <MaterialIcons
                 name= {
                   sortMethod.desc
                   ? "arrow-upward"
@@ -273,7 +249,7 @@ export default function BookshelfScreen() {
             leadingIcon={
               (sortMethod.method === 'date')
               ? ()=>(
-                <MaterialIcons 
+                <MaterialIcons
                 name= {
                   sortMethod.desc
                   ? "arrow-upward"
@@ -291,8 +267,7 @@ export default function BookshelfScreen() {
             }}
           />
         </Menu>
-
-      //Book Shelf
+      {/* Book List */}
       <FlatList
         data={books}
         keyExtractor={(item) => item.id}
@@ -302,7 +277,6 @@ export default function BookshelfScreen() {
             elevation={0}
             onPress={() => openReader(item.filePath, item.id)}
           >
-
             <Card.Title
               style= {{
                 flexDirection: 'row',
@@ -346,7 +320,24 @@ export default function BookshelfScreen() {
           </Card>
         )}
       />
+      {/* Modal for long press action */}
 
     </Surface>
   );
 }
+
+const styles = StyleSheet.create({
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginBottom: '10%'},
+  card: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  cover: {
+    height: '100%',
+    aspectRatio: 0.72,
+    borderRadius: 4,
+    backgroundColor: '#CCC',
+  },
+  title: { textAlign: 'left', textAlignVertical: 'top'},
+  menuItem: {width: '100%'},
+});
