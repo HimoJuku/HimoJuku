@@ -1,3 +1,7 @@
+<div align="center">
+  <img width = 300 src="https://github.com/user-attachments/assets/da86499c-ad9e-4145-804e-667860add86b">
+</div>
+
 ## HimoJuku
 A ACGN novel reader project
 
