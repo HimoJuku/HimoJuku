@@ -1,39 +1,101 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+import React, {useEffect} from 'react';
+import {
+  useColorScheme,
+} from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+import { Colors } from '../constants/colors';
+
+import {
+  MD3DarkTheme,
+  MD3LightTheme,
+  PaperProvider
+} from 'react-native-paper';
+
+import { ThemeContext, ThemePreference, ResolvedThemeType  } from '../constants/settings';
+
 import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
+import { SearchBar } from '@/components/Header';
+import { ReaderProvider } from '@himojuku/epubjs-react-native';
+import { database } from '@/db';
+import Settings from '@/db/models/settings';
+/**
+ * Root layout component for the app.
+ * This component sets up the theme context and the drawer navigator.
+ * It also provides a header and a custom drawer content component.
+ */
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  const systemColorScheme = useColorScheme();
+  const [themePreference, setThemePreference] = React.useState<ThemePreference>("system");
+  // Get the system color scheme (light or dark) from the device settings
+  const safeSystemTheme = systemColorScheme || "light";
+  const resolvedTheme: ResolvedThemeType =
+    themePreference === "system" ? safeSystemTheme : themePreference;
+  // Determine the resolved theme based on the user's preference and system settings
+  const paperTheme = resolvedTheme === 'dark'
+      ? { ...MD3DarkTheme, colors: Colors.dark.colors }
+      : { ...MD3LightTheme, colors: Colors.light.colors };
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
+    const sub = database.get<Settings>('settings').query().observe().subscribe((settings) => {
+      settings.forEach((setting) => {
+        const themePreference = setting.ThemePreference as ThemePreference;
+        // Update the theme preference in the context
+        setThemePreference(themePreference);
+      });
+    });
+    return () => sub.unsubscribe();
+  }, [setThemePreference]); // Add dependency
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <ThemeContext.Provider
+      value={{
+        themePreference,
+        resolvedTheme,
+        setThemePreference,
+      }}
+    >
+      <PaperProvider theme={paperTheme}>
+        <ReaderProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <Stack
+              initialRouteName="(drawer)"
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: 'transparent' },
+                animation: 'fade',
+                presentation: 'modal',
+              }}
+              >
+              <Stack.Screen
+                name="reader/index"
+                options={{
+                  title: "Reader",
+                  animation: 'fade',
+                  presentation: 'modal',
+                }}
+              />
+              <Stack.Screen
+                name="search"
+                options={{
+                  title: "Search",
+                  animation: 'fade',
+                  presentation: 'modal',
+                  headerShown: true,
+                  header: () => <SearchBar/>,
+                }}
+              />
+              <Stack.Screen
+                name="(drawer)"
+                options={{
+                  animation: 'fade',
+                  presentation: 'modal'
+                }}
+              />
+            </Stack>
+          </GestureHandlerRootView>
+        </ReaderProvider>
+      </PaperProvider>
+    </ThemeContext.Provider>
   );
 }
