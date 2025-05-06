@@ -11,25 +11,16 @@ import {
   Text,
   useTheme,
   Card,
-  IconButton,
-  Button,
-  Menu,
-  Divider,
-  SegmentedButtons,
+  Portal,
+  Modal,
+  Button
 } from 'react-native-paper';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { database } from '@/db';
 import Book from '@/db/models/books';
 import * as Sort from '@/functions/sort';
-
-type DrawerParamList = {
-  bookShelf: undefined;
-  bookManagement: undefined;
-  settings: undefined;
-  reader: { path: string };
-  databaseTest: undefined;
-};
+import SortMenu from '@/components/SortMenu';
+import { openReader } from '@/functions/readerFunction';
 
 export default function BookshelfScreen() {
   const [books, setBooks] = React.useState<Book[]>([]);
@@ -37,8 +28,9 @@ export default function BookshelfScreen() {
   //default sort method
   const [sortMethod, setSortMethod] = React.useState<Sort.SortMethod>({method: 'author', desc: false});
   const [sortMenu , setSortMenu] = React.useState(false);
+  const [currentBook, setCurrentBook] = React.useState<Book | null>(null);
+  const [bookPanelVisible, setBookPanelVisible] = React.useState(false);
   const theme = useTheme();
-  const router = useRouter();
 
   useEffect(() => {
     const sub = database.get<Book>('books').query().observe()
@@ -70,33 +62,7 @@ export default function BookshelfScreen() {
     setRefreshing(false);
   };
 
-  //Open reader method
-  const openReader = (path: string, bookId: string) => {
-    router.push({
-      pathname: '/reader',
-      params: {
-        path,
-        bookId,
-      },
-    });
-  };
-
-  const styles = StyleSheet.create({
-    center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginBottom: '10%'},
-    card: {
-      alignItems: 'center',
-      flexDirection: 'row',
-    },
-    cover: {
-      height: '100%',
-      aspectRatio: 0.72,
-      borderRadius: 4,
-      backgroundColor: '#CCC',
-    },
-    title: { textAlign: 'left', textAlignVertical: 'top'},
-    author: {fontSize: 10, color: theme.colors.outline, marginTop: 2},
-    menuItem: {width: '100%'},
-  });
+  const router = useRouter();
 
   if (books.length === 0) {
     return (
@@ -116,183 +82,18 @@ export default function BookshelfScreen() {
     <Surface
       style={{
         flex: 1,
-        backgroundColor: theme.colors.surface, 
-      }} 
+        backgroundColor: theme.colors.surface,
+      }}
       elevation={0}
     >
-      //Tool Container
-        <Menu
-          anchor = {
-            <View
-              style={{
-                flexDirection: 'row',
-                flex: 0,
-                alignItems: 'flex-start',
-                justifyContent: 'flex-start',
-                marginHorizontal: 15,
-              }}
-            >
-              <Button
-                mode="text"
-                contentStyle={{
-                  flexDirection: 'row-reverse',
-                  marginLeft: "auto",
-                }}
-                onPress={()=>setSortMenu(true)}
-                icon = {(props)=>(
-                  <MaterialIcons 
-                  name= {
-                    sortMethod.desc
-                    ? "arrow-upward"
-                    : 'arrow-downward'
-                  }
-                  {...props}
-                />
-              )}
-              >
-                {sortMethod.method}
-              </Button>
-            </View>
-          }
-          anchorPosition='bottom'
-          visible={sortMenu}
-          onDismiss={() => setSortMenu(false)}
-          theme={{ colors: { elevation: {level2: theme.colors.elevation.level1} } }}
-          contentStyle={{
-          }}
-        >
-          <Divider />
-          <Menu.Item
-            title="Title"
-            style={
-              (sortMethod.method === 'title')
-                ? {backgroundColor: theme.colors.elevation.level5}
-                : {}
-            }
-            titleStyle={
-              (sortMethod.method === 'title')
-              ?{color: theme.colors.primary}
-              :{}
-            }
-            leadingIcon={
-              (sortMethod.method === 'title')
-              ? ()=>(
-                <MaterialIcons 
-                name= {
-                  sortMethod.desc
-                  ? "arrow-upward"
-                  : 'arrow-downward'
-                }
-                size={20} color={theme.colors.primary}
-                />
-              )
-              : {}
-            }
-            onPress={() => {
-              (sortMethod.method === 'title')
-                ? setMethodNSort('title', !sortMethod.desc)
-                : setMethodNSort('title', sortMethod.desc);
-            }}
-          />
-          <Menu.Item
-            title="Author"
-            style={
-              (sortMethod.method === 'author')
-                ? {backgroundColor: theme.colors.elevation.level5}
-                : {}
-            }
-            titleStyle={
-              (sortMethod.method === 'author')
-              ?{color: theme.colors.primary}
-              :{}
-            }
-            leadingIcon={
-              (sortMethod.method === 'author')
-              ? ()=>(
-                <MaterialIcons 
-                name= {
-                  sortMethod.desc
-                  ? "arrow-upward"
-                  : 'arrow-downward'
-                }
-                size={20} color={theme.colors.primary}
-                />
-              )
-              : {}
-            }
-            contentStyle={[styles.menuItem]}
-            onPress={() => {
-              (sortMethod.method === 'author')
-                ? setMethodNSort('author', !sortMethod.desc)
-                : setMethodNSort('author', sortMethod.desc);
-            }}
-          />
-          <Menu.Item
-            title="Access Date"
-            style={
-              (sortMethod.method === 'lastRead')
-                ? {backgroundColor: theme.colors.elevation.level5}
-                : {}
-            }
-            titleStyle={
-              (sortMethod.method === 'lastRead')
-              ?{color: theme.colors.primary}
-              :{}
-            }
-            leadingIcon={
-              (sortMethod.method === 'lastRead')
-              ? ()=>(
-                <MaterialIcons 
-                name= {
-                  sortMethod.desc
-                  ? "arrow-upward"
-                  : 'arrow-downward'
-                }
-                size={20} color={theme.colors.primary}
-                />)
-              : {}
-            }
-            onPress={() => {
-              (sortMethod.method === 'lastRead')
-                ? setMethodNSort('lastRead', !sortMethod.desc)
-                : setMethodNSort('lastRead', sortMethod.desc);
-            }}
-          />
-          <Menu.Item
-            title="Date Added"
-            style={
-              (sortMethod.method === 'date')
-                ? {backgroundColor: theme.colors.elevation.level5}
-                : {}
-            }
-            titleStyle={
-              (sortMethod.method === 'date')
-              ?{color: theme.colors.primary}
-              :{}
-            }
-            leadingIcon={
-              (sortMethod.method === 'date')
-              ? ()=>(
-                <MaterialIcons 
-                name= {
-                  sortMethod.desc
-                  ? "arrow-upward"
-                  : 'arrow-downward'
-                }
-                size={20} color={theme.colors.primary}
-                />
-              )
-              : {}
-            }
-            onPress={() => {
-              (sortMethod.method === 'date')
-                ? setMethodNSort('date', !sortMethod.desc)
-                : setMethodNSort('date', sortMethod.desc);
-            }}
-          />
-        </Menu>
-
-      //Book Shelf
+      {/* Sort Menu */}
+      <SortMenu
+        sortMethod={sortMethod}
+        setMethodNSort={setMethodNSort}
+        sortMenuVisible={sortMenu}
+        setSortMenuVisible={setSortMenu}
+      />
+      {/* Book List */}
       <FlatList
         data={books}
         keyExtractor={(item) => item.id}
@@ -300,9 +101,12 @@ export default function BookshelfScreen() {
         renderItem={({ item }) => (
           <Card
             elevation={0}
-            onPress={() => openReader(item.filePath, item.id)}
+            onPress={() => openReader(item.filePath, item.id, router)}
+            onLongPress={() => {
+              setCurrentBook(item);
+              setBookPanelVisible(true);
+            }}
           >
-
             <Card.Title
               style= {{
                 flexDirection: 'row',
@@ -346,7 +150,46 @@ export default function BookshelfScreen() {
           </Card>
         )}
       />
-
+      {/* Modal for long press action */}
+      <Portal>
+        <Modal visible={bookPanelVisible} onDismiss={()=> setBookPanelVisible(false)} contentContainerStyle={styles.card}>
+          <Card
+            style={styles.card}>
+            <Button
+              mode="text"
+              onPress={() => {
+                setBookPanelVisible(false)
+              database.write(async () => {
+                if (currentBook?.id) {
+                  const bookRecord = await database.get<Book>('books').find(currentBook.id);
+                  if (bookRecord) {
+                    bookRecord.markAsDeleted();
+                    setBooks(books.filter((b) => b.id !== currentBook.id));
+                  }
+                }
+              });
+              }}>
+                Delete Book
+            </Button>
+          </Card>
+        </Modal>
+      </Portal>
     </Surface>
   );
 }
+
+const styles = StyleSheet.create({
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginBottom: '10%'},
+  card: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  cover: {
+    height: '100%',
+    aspectRatio: 0.72,
+    borderRadius: 4,
+    backgroundColor: '#CCC',
+  },
+  title: { textAlign: 'left', textAlignVertical: 'top'},
+  menuItem: {width: '100%'},
+});

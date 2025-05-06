@@ -6,7 +6,7 @@ import { useTheme, ActivityIndicator, Text, Card, Chip, Button, Avatar } from 'r
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { View, StyleSheet, FlatList, RefreshControl, Image} from 'react-native';
 import { searchBy } from '@/constants/search';
-import { color } from 'bun';
+import { openReader } from '@/functions/readerFunction';
 
 /**
  * SearchScreen
@@ -55,18 +55,6 @@ export default function SearchScreen() {
         } finally {
             setLoading(false);
         }
-    };
-
-      //Open reader method
-    const openReader = (path: string) => {
-        router.push(
-        {
-            pathname: '/reader',
-            params: {
-            path: path
-            }
-        }
-        );
     };
 
     return (
@@ -123,7 +111,7 @@ export default function SearchScreen() {
                     renderItem={({ item }) => (
                         <Card
                         elevation={0}
-                        onPress={() => openReader(item.filePath)}
+                        onPress={() => openReader(item.filePath, item.id, router)}
                         style={styles.bookContainer}
                         >
                             <Image
@@ -165,7 +153,7 @@ export default function SearchScreen() {
                         renderItem={({ item }) => (
                             <Card style={styles.avatar}
                                 elevation={0}
-                                onPress={() => openReader(item.filePath)}>
+                                onPress={() => openReader(item.filePath, item.id, router)}>
                                 <Avatar.Icon
                                     size={100}
                                     icon="account"
