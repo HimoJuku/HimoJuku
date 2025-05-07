@@ -3,9 +3,9 @@ import { CustomDrawerContent } from '@/components/CustomDrawerContent';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Header } from '@/components/Header';
 import {
-    Dimensions
+    Dimensions,
 } from 'react-native';
-
+import React from 'react';
 import { useTheme } from 'react-native-paper';
 
 export default function DrawerLayout() {

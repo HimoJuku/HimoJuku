@@ -1,4 +1,6 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import { database } from '@/db';
+import Book from '@/db/models/books';
 import { useTheme } from 'react-native-paper';
 import {
   View,
@@ -14,10 +16,22 @@ import Gradient from '@/components/Gradient';
 // Will become the cover of latest book
 function DrawerCover() {
   const theme = useTheme();
+  const [books, setBooks] = React.useState<Book[]>([]);
+  useEffect(() => {
+    const sub = database.get<Book>('books').query().observe()
+      .subscribe((fresh) => {
+        setBooks(fresh);
+      });
+    return () => sub.unsubscribe();
+  }, []);
   return (
       <View style={styles.coverFrame}>
           <Image
-            source={{ uri: 'https://pic1.imgdb.cn/item/67d09faa066befcec6e366fe.png'}}
+            source={
+              books.length > 0
+                ? {uri: books[0].coverUrl}
+                : require('@/assets/images/cover-placeholder.png')
+            }
             style={{width: '100%', height: '100%', resizeMode: 'cover', zIndex: -2}}
           />
           <Gradient fromColor={theme.colors.primaryContainer}  toColor={theme.colors.primaryContainer} opacityColor1={0} />
